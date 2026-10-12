@@ -333,7 +333,7 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
       </div>
       <div class="inline" id="ed-custom" hidden>
         <input id="ed-cname" placeholder="品名" style="flex:1 1 140px" aria-label="自訂品名">
-        <input id="ed-cprice" type="number" inputmode="numeric" placeholder="金額，折扣打負數" style="width:150px" aria-label="自訂金額">
+        <input id="ed-cprice" type="number" inputmode="numeric" placeholder="金額" style="width:150px" aria-label="自訂金額">
         <select id="ed-ctype" aria-label="出餐類別"><option value="drink">飲品</option><option value="food">食物</option><option value="none">不用出餐</option></select>
         <button class="btn small primary" data-act="customOk">加入</button>
         <button class="btn small" data-act="customCancel">取消</button>
@@ -385,7 +385,7 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
   <div id="t-grid"></div>
   <div class="inline" id="t-hint" hidden></div>
   <div class="lab">或改成熟客名字</div>
-  <input id="t-name" class="txt" placeholder="名字" aria-label="名字" autocomplete="off">
+  <input id="t-name" class="txt" aria-label="名字" autocomplete="off">
   <div class="chips" id="t-regs"></div>
   <button class="btn primary big" data-act="tNameOk">改成這個名字</button>
 </section>
@@ -394,7 +394,7 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 <div class="sheet-back" id="p-back" data-act="closeP" hidden></div>
 <section class="sheet" id="p-sheet" role="dialog" aria-label="開人名單" hidden>
   <div class="shd"><h2>熟客</h2><button class="sx" data-act="closeP" aria-label="關閉">×</button></div>
-  <input id="p-name" class="txt" placeholder="名字" aria-label="名字" autocomplete="off">
+  <input id="p-name" class="txt" aria-label="名字" autocomplete="off">
   <div class="chips" id="p-regs"></div>
   <div id="p-save-row" hidden><button class="chip mini" id="p-save" data-act="pSave">存成熟客</button></div>
   <button class="btn primary big" data-act="pOk" style="margin-top:8px">開始點餐</button>
@@ -426,7 +426,7 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 <section class="sheet" id="r-sheet" role="dialog" aria-label="熟客" hidden>
   <div class="shd"><h2 id="r-title">編輯熟客</h2><button class="sx" data-act="closeR" aria-label="關閉">×</button></div>
   <div class="lab">名字</div><input id="rf-name" class="txt" autocomplete="off">
-  <div class="lab">備註</div><input id="rf-note" class="txt" autocomplete="off" placeholder="愛喝什麼、不要什麼">
+  <div class="lab">備註</div><input id="rf-note" class="txt" autocomplete="off">
   <button class="btn primary big" data-act="rSave">儲存</button>
   <button class="btn danger big" id="rf-del" data-act="rDel" style="margin-top:8px">刪除這位熟客</button>
 </section>
