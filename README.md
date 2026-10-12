@@ -16,5 +16,6 @@
 - `menu/main`：菜單 `{items:[{id,name,en,cat,price,active}]}`
 - `regulars/main`：熟客 `{list:[{id,name,note,last}]}`
 - `settings/main`：桌位 `{tables:[...]}`
-- `orders/*`：訂單 `{kind:'table'|'person', table, guests, items, payments, payDays, status, serving, ...}`
+- `orders/*`：訂單 `{kind:'table'|'person', table, rid, note, items:[{id,menuId,name,price,qty,sv,t,at}], payments:[{at,method,amount,lines,tendered}], payDays, status, serving, createdAt, closedAt}`（`t` 是出餐類別 drink/food/none；舊單的 `guests` 已不使用）
+- `notes/*`：備忘 `{text, done, at, doneAt}`，每則一份文件，多支手機同時新增不會互蓋
 - 營業日以早上 6 點換日。
