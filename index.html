@@ -202,6 +202,18 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 .nl input{flex:1;min-width:0;border:0;background:none;font-size:17px;padding:14px 0;outline:none}
 .nl .xbtn{width:36px;height:36px;border:0;background:none;color:var(--ink-2);font-size:20px}
 .nfoot{display:flex;justify-content:space-between;align-items:center;padding:0 4px}
+/* 小白板：每一行是一塊，可以是文字或清單 */
+.board{background:var(--paper);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--paper-line);padding:6px 0 14px;min-height:62vh;margin-bottom:12px}
+.btool{display:flex;gap:8px;align-items:center;position:sticky;top:calc(64px + env(safe-area-inset-top,0px));z-index:5;background:var(--bg);padding:0 0 10px}
+.btool button{min-height:40px;border-radius:999px;border:1px solid var(--line);background:var(--surface);padding:0 14px;font-weight:600}
+.btool button.on{background:var(--nacc);border-color:var(--nacc);color:#fff}
+.btool .sp{flex:1}
+.bl{display:flex;align-items:flex-start;gap:10px;padding:0 16px}
+.bl textarea{flex:1;min-width:0;border:0;background:none;resize:none;outline:none;font-size:17px;line-height:1.5;padding:5px 0;overflow:hidden;color:var(--ink)}
+.bl .cir{flex:0 0 22px;height:22px;margin-top:8px;border-radius:50%;border:2px solid var(--ink-2);opacity:.6;background:none;padding:0;display:flex;align-items:center;justify-content:center;color:transparent;font-size:13px;font-weight:700}
+.bl.done .cir{background:var(--nacc);border-color:var(--nacc);opacity:1;color:#fff}
+.bl.done textarea{color:var(--ink-2);text-decoration:line-through}
+.bmeta{text-align:center;font-size:12px;color:var(--ink-2);padding:6px 0 4px}
 /* 設定 */
 .glist{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
 .grow{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;border:0;border-top:1px solid var(--line);background:none;padding:0 16px;text-align:left;font-size:16px}
@@ -488,7 +500,7 @@ var fmtTime=function(ts){var d=new Date(ts);return pad2(d.getHours())+':'+pad2(d
 var clone=function(x){return JSON.parse(JSON.stringify(x));};
 
 var S={db:null,state:'connecting',menu:{items:[]},menuMap:{},menuLoaded:false,regs:[],settings:{},settingsLoaded:false,
-  open:[],openLoaded:false,pend:[],days:{},notes:[],notesLoaded:false,
+  open:[],openLoaded:false,pend:[],days:{},notes:[],notesLoaded:false,board:{},boardLoaded:false,migrated:false,
   view:'tables',msheet:null,rsheet:null,svType:'drink',svBy:(function(){try{return localStorage.getItem('pos.svBy')||'seat';}catch(x){return 'seat';}})(),salesDay:bizDay(),setSec:null,
   editor:null,co:null,tsheet:null,psheet:null,confirm:null,menuQ:''};
 var tablesList=function(){var t=S.settings&&S.settings.tables;return (t&&t.length)?t:DEFAULT_TABLES;};
@@ -534,7 +546,8 @@ function arm(key,ms){S.confirm=key;clearTimeout(arm.t);arm.t=setTimeout(function
 function rerenderConfirmable(){
   if(S.editor)renderEditorCart();
   if(S.co)renderCo();
-  if(!S.editor&&!S.co)renderMain();
+  if(!S.editor&&!S.co&&S.view!=='notes')renderMain();
+  if(S.view==='notes'&&$('#b-clear'))$('#b-clear').textContent='清除已劃掉';
 }
 
 /* ---------- 資料連線 ---------- */
@@ -578,7 +591,17 @@ function startDb(db){
     if(S.view==='serve'||S.view==='tables')renderMain();
   },function(e){console.error(e);});
   db.collection('notes').onSnapshot(function(q){
-    S.notes=q.docs.map(function(d){var x=d.data();x.id=d.id;return x;});S.notesLoaded=true;
+    S.notes=q.docs.map(function(d){var x=d.data();x.id=d.id;return x;});S.notesLoaded=true;migrateNotes();
+  },function(e){console.error(e);});
+  db.collection('board').onSnapshot(function(q){
+    var next={};
+    q.docs.forEach(function(d){var x=d.data();x.id=d.id;
+      var cur=S.board[d.id];
+      // 自己正在打的那一行，以手上的字為準
+      if(cur&&boardTimers[d.id]&&document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.bid===d.id)x.text=cur.text;
+      next[d.id]=x;});
+    Object.keys(S.board).forEach(function(k){if(S.board[k].__new)next[k]=S.board[k];});
+    S.board=next;S.boardLoaded=true;migrateNotes();
     renderTabs();if(S.view==='notes')renderMain();
   },function(e){console.error(e);});
   ensureDay(bizDay());
@@ -620,7 +643,7 @@ function servingTotals(){
 }
 function renderTabs(){
   var st=servingTotals(),pn=st.drink+st.food;
-  var nn=S.notes.filter(function(n){return !n.done;}).length;
+  var nn=boardList().filter(function(b){return b.type==='check'&&!b.done&&b.text.trim();}).length;
   var badge=function(n){return n?'<span class="n num">'+n+'</span>':'';};
   var tabs=[['tables','桌位',''],['serve','出餐',badge(pn)],['notes','備忘',badge(nn)],['sales','營業額',''],['settings','設定','']];
   $('#tabs').innerHTML=tabs.map(function(t){return '<button data-act="tab" data-v="'+t[0]+'"'+(S.view===t[0]?' aria-current="page"':'')+'>'+t[1]+t[2]+'</button>';}).join('');
@@ -629,15 +652,15 @@ function renderMain(){
   var el=$('#main');
   var banner=S.state==='none'?'<div class="banner">沒有連到資料庫。請確認網路，並登入店裡的帳號。</div>':'';
   var v=S.view,h;
+  if(v==='notes'){
+    if(!$('#board')){el.innerHTML=banner+(S.boardLoaded||S.state!=='ready'?boardShell():'<div class="empty muted">讀取中…</div>');}
+    patchBoard();renderHeader();return;
+  }
   if(v==='tables')h=tablesView();
   else if(v==='serve')h=serveView();
-  else if(v==='notes')h=notesView();
   else if(v==='sales')h=salesView();
   else h=settingsView();
-  // 備忘輸入框打字中就不要重畫，避免打到一半被洗掉
-  var ni=$('#note-input'),keep=ni&&document.activeElement===ni?ni.value:null;
   el.innerHTML=banner+h;
-  if(keep!==null&&$('#note-input')){$('#note-input').value=keep;$('#note-input').focus();}
   renderHeader();
 }
 
@@ -758,30 +781,115 @@ function markServed(orderId,spec,type){
 function afterServe(msg){renderTabs();renderMain();syncEditor();if(msg)toast(msg);}
 
 /* ----- 備忘 ----- */
-function notesView(){
-  if(!S.notesLoaded&&S.state==='ready')return '<div class="empty muted">讀取中…</div>';
-  var todo=S.notes.filter(function(n){return !n.done;}).sort(function(a,b){return (b.at||0)-(a.at||0);});
-  var done=S.notes.filter(function(n){return n.done;}).sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0);});
-  var row=function(n){
-    return '<div class="nl'+(n.done?' done':'')+'"><button class="cir" data-act="noteToggle" data-id="'+esc(n.id)+'" aria-label="'+(n.done?'取消劃掉':'劃掉')+'">✓</button>'+
-      '<button class="tx" data-act="noteToggle" data-id="'+esc(n.id)+'">'+esc(n.text)+'</button>'+
-      (n.done?'<button class="xbtn" data-act="noteDel" data-id="'+esc(n.id)+'" aria-label="刪除">×</button>':'')+'</div>';
-  };
-  var last=S.notes.reduce(function(m,n){return Math.max(m,n.doneAt||0,n.at||0);},0);
-  var h='<div class="paper">'+(last?'<div class="ndate num">'+fmtDay(bizDay(last))+' '+fmtTime(last)+'</div>':'')+
-    '<div class="nl"><span class="cir plus" aria-hidden="true"></span><input id="note-input" placeholder="新增" aria-label="新增備忘" autocomplete="off" enterkeyhint="done"></div>'+
-    todo.map(row).join('')+done.map(row).join('')+'</div>';
-  if(done.length)h+='<div class="nfoot"><span class="muted">'+(todo.length?'還有 '+todo.length+' 項':'都好了')+'</span><button class="link" data-act="noteClear">'+(S.confirm==='noteClear'?'再按一次清除':'清除已劃掉')+'</button></div>';
-  return h;
+/* ----- 備忘：大家共用的小白板 ----- */
+// 每一行是一份文件 board/{id}：{order,type:'text'|'check',text,done,at}，各改各的行，多人同時寫也不會互蓋
+var boardTimers={},boardFocus=null;
+function boardList(){return Object.keys(S.board).map(function(k){return S.board[k];}).sort(function(a,b){return a.order-b.order;});}
+function boardShell(){
+  return '<div class="btool"><button data-act="bCheck" id="b-check">☑ 清單</button><span class="sp"></span><button data-act="bClear" id="b-clear" hidden>清除已劃掉</button></div>'+
+    '<div class="board" id="board"><div class="bmeta num" id="b-meta"></div><div id="b-lines"></div></div>';
 }
-function addNote(){
-  var inp=$('#note-input');if(!inp)return;
-  var text=inp.value.trim();if(!text){inp.focus();return;}
-  inp.value='';
-  var ref=S.db.collection('notes').doc(),n={text:text,done:false,at:Date.now(),doneAt:null};
-  var loc=clone(n);loc.id=ref.id;S.notes.push(loc);renderMain();renderTabs();
-  $('#note-input')&&$('#note-input').focus();
-  w(function(){return ref.set(n);});
+function autosize(t){t.style.height='auto';t.style.height=t.scrollHeight+'px';}
+function makeRow(b){
+  var row=document.createElement('div');row.className='bl';row.dataset.bid=b.id;
+  row.innerHTML='<button class="cir" data-act="bDone" data-id="'+esc(b.id)+'" aria-label="劃掉">✓</button><textarea rows="1" data-bid="'+esc(b.id)+'" aria-label="備忘內容"></textarea>';
+  return row;
+}
+function patchBoard(){
+  var box=$('#b-lines');if(!box)return;
+  var list=boardList();
+  if(!list.length){
+    // 空白板：放一行還沒存的，打字後才建立
+    list=[{id:'new',order:0,type:'text',text:'',done:false}];
+  }
+  var ids={};list.forEach(function(b){ids[b.id]=1;});
+  Array.prototype.slice.call(box.children).forEach(function(r){if(!ids[r.dataset.bid])r.remove();});
+  var prev=null;
+  list.forEach(function(b){
+    var row=box.querySelector('.bl[data-bid="'+b.id+'"]');
+    if(!row){row=makeRow(b);}
+    var want=prev?prev.nextSibling:box.firstChild;
+    if(row!==want)box.insertBefore(row,want);
+    row.className='bl'+(b.type==='check'?' check':'')+(b.type==='check'&&b.done?' done':'');
+    row.querySelector('.cir').hidden=b.type!=='check';
+    var ta=row.querySelector('textarea');
+    if(document.activeElement!==ta&&ta.value!==b.text)ta.value=b.text;
+    autosize(ta);
+    prev=row;
+  });
+  var last=list.reduce(function(m,b){return Math.max(m,b.at||0);},0);
+  $('#b-meta').textContent=last?fmtDay(bizDay(last))+' '+fmtTime(last):'';
+  $('#b-clear').hidden=!list.some(function(b){return b.type==='check'&&b.done;});
+  var fb=boardFocus&&S.board[boardFocus];
+  $('#b-check').className=fb&&fb.type==='check'?'on':'';
+}
+function bOrderAfter(id){
+  var list=boardList(),i=list.findIndex(function(b){return b.id===id;});
+  var a=list[i]?list[i].order:0,n=list[i+1];
+  return n?(a+n.order)/2:a+1;
+}
+function bSave(b,fields){
+  Object.keys(fields).forEach(function(k){b[k]=fields[k];});
+  b.at=Date.now();
+  var data={order:b.order,type:b.type,text:b.text,done:!!b.done,at:b.at};
+  if(b.__new){delete b.__new;w(function(){return S.db.doc('board/'+b.id).set(data);});}
+  else w(function(){return S.db.doc('board/'+b.id).update(fields.text!==undefined&&Object.keys(fields).length===1?{text:b.text,at:b.at}:data);});
+}
+function bCreate(afterId,fields){
+  var id=uid(),b={id:id,order:afterId?bOrderAfter(afterId):(boardList().length?boardList()[0].order-1:0),type:'text',text:'',done:false,__new:true};
+  Object.keys(fields||{}).forEach(function(k){b[k]=fields[k];});
+  S.board[id]=b;bSave(b,{});
+  return b;
+}
+function bDelete(id){delete S.board[id];w(function(){return S.db.doc('board/'+id).delete();});}
+function bFocus(id,pos){
+  patchBoard();
+  var ta=document.querySelector('textarea[data-bid="'+id+'"]');if(!ta)return;
+  ta.focus();var p=pos==null?ta.value.length:pos;try{ta.setSelectionRange(p,p);}catch(x){}
+  boardFocus=id;patchBoard();
+}
+function boardInput(ta){
+  var id=ta.dataset.bid;autosize(ta);
+  if(id==='new'){
+    var b=bCreate(null,{text:ta.value});ta.dataset.bid=b.id;ta.closest('.bl').dataset.bid=b.id;
+    ta.closest('.bl').querySelector('.cir').dataset.id=b.id;boardFocus=b.id;renderTabs();return;
+  }
+  var b2=S.board[id];if(!b2)return;
+  b2.text=ta.value;
+  clearTimeout(boardTimers[id]);boardTimers[id]=setTimeout(function(){if(S.board[id])bSave(S.board[id],{text:S.board[id].text});},400);
+}
+function boardKey(e){
+  var ta=e.target,id=ta.dataset.bid,b=S.board[id];
+  if(e.isComposing||e.keyCode===229)return;
+  if(!b)return;
+  var start=ta.selectionStart,end=ta.selectionEnd;
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    clearTimeout(boardTimers[id]);
+    if(b.type==='check'&&!ta.value.trim()){bSave(b,{type:'text',text:'',done:false});patchBoard();renderTabs();return;}
+    var before=ta.value.slice(0,start),after=ta.value.slice(end);
+    ta.value=before;bSave(b,{text:before});
+    var nb=bCreate(id,{type:b.type,text:after});
+    renderTabs();bFocus(nb.id,0);
+  }else if(e.key==='Backspace'&&start===0&&end===0){
+    if(b.type==='check'){e.preventDefault();bSave(b,{type:'text',done:false});patchBoard();renderTabs();return;}
+    var list=boardList(),i=list.findIndex(function(x){return x.id===id;});
+    if(i>0){
+      e.preventDefault();clearTimeout(boardTimers[id]);
+      var pb=list[i-1],pos=pb.text.length;
+      bSave(pb,{text:pb.text+ta.value});bDelete(id);renderTabs();bFocus(pb.id,pos);
+    }
+  }
+}
+function migrateNotes(){
+  if(!S.boardLoaded||!S.notesLoaded||S.migrated)return;
+  S.migrated=true;
+  if(boardList().length||!S.notes.length)return;
+  S.notes.slice().sort(function(a,b){return (a.at||0)-(b.at||0);}).forEach(function(n,i){
+    var b={id:uid(),order:i,type:'check',text:n.text,done:!!n.done,__new:true};S.board[b.id]=b;bSave(b,{});
+  });
+  w(function(){return Promise.all(S.notes.map(function(n){return S.db.doc('notes/'+n.id).delete();}));});
+  renderMain();renderTabs();
 }
 
 /* ----- 營業額 ----- */
@@ -807,10 +915,7 @@ function salesView(){
     var pct=st.total>0?Math.round(st.byMethod[m]/st.total*100):0;
     return '<div class="mline"><span>'+esc(m)+'</span><div class="bar"><i style="width:'+Math.max(0,pct)+'%"></i></div><b class="num">'+money(st.byMethod[m])+'</b></div>';
   }).join(''):'<p class="muted">這天還沒有收款。</p>')+'</div>';
-  var top='<div class="card"><h2>賣得最好</h2>'+(st.top.length?st.top.slice(0,10).map(function(t,i){
-    return '<div class="rank"><span class="muted num">'+(i+1)+'</span><span>'+esc(t.name)+'</span><b class="num">×'+t.qty+'</b><span class="muted num">'+money(t.amount)+'</span></div>';
-  }).join(''):'<p class="muted">這天還沒有賣出品項。</p>')+'</div>';
-  return nav+out+head+methods+top;
+  return nav+out+head+methods;
 }
 
 /* ----- 設定 ----- */
@@ -1321,6 +1426,8 @@ function mutItem(id,fn){
 
 /* ---------- 事件 ---------- */
 document.addEventListener('click',function(e){
+  // 點白板空白處：游標跳到最後一行
+  if(e.target.id==='board'||e.target.id==='b-lines'){var all=document.querySelectorAll('#b-lines textarea');var l=all[all.length-1];if(l){l.focus();try{l.setSelectionRange(l.value.length,l.value.length);}catch(x){}}return;}
   var t=e.target.closest('[data-act]');if(!t||t.disabled)return;
   var a=t.dataset.act,id=t.dataset.id,v=t.dataset.v;
   switch(a){
@@ -1391,17 +1498,16 @@ document.addEventListener('click',function(e){
       var per={};grp.entries.forEach(function(e2){if(!lineDone(e2.l))(per[e2.o.id]=per[e2.o.id]||[]).push(e2.l.id);});
       Object.keys(per).forEach(function(oid){markServed(oid,per[oid],S.svType);});
       afterServe(grp.name+' 都出了 ✓');break;}
-    case 'noteAdd':addNote();break;
-    case 'noteToggle':{
-      var n=S.notes.find(function(x){return x.id===id;});if(!n)break;
-      n.done=!n.done;n.doneAt=n.done?Date.now():null;renderMain();renderTabs();
-      w(function(){return S.db.doc('notes/'+id).update({done:n.done,doneAt:n.doneAt});});break;}
-    case 'noteDel':S.notes=S.notes.filter(function(x){return x.id!==id;});renderMain();w(function(){return S.db.doc('notes/'+id).delete();});break;
-    case 'noteClear':{
-      if(S.confirm!=='noteClear'){arm('noteClear',4000);renderMain();break;}
-      S.confirm=null;var ds=S.notes.filter(function(x){return x.done;});
-      S.notes=S.notes.filter(function(x){return !x.done;});renderMain();
-      w(function(){return Promise.all(ds.map(function(x){return S.db.doc('notes/'+x.id).delete();}));});break;}
+    case 'bDone':{
+      var bb=S.board[id];if(!bb)break;bSave(bb,{done:!bb.done});patchBoard();renderTabs();break;}
+    case 'bCheck':{
+      var fb=boardFocus&&S.board[boardFocus];
+      if(!fb){var nb=bCreate(boardList().length?boardList()[boardList().length-1].id:null,{type:'check'});renderTabs();bFocus(nb.id);break;}
+      bSave(fb,{type:fb.type==='check'?'text':'check',done:false});patchBoard();renderTabs();bFocus(fb.id);break;}
+    case 'bClear':{
+      if(S.confirm!=='bClear'){arm('bClear',4000);$('#b-clear').textContent='再按一次清除';break;}
+      S.confirm=null;boardList().forEach(function(b){if(b.type==='check'&&b.done)bDelete(b.id);});
+      $('#b-clear').textContent='清除已劃掉';patchBoard();renderTabs();break;}
     case 'dayPrev':S.salesDay=shiftDay(S.salesDay,-1);renderMain();break;
     case 'dayNext':if(S.salesDay<bizDay()){S.salesDay=shiftDay(S.salesDay,1);renderMain();}break;
     case 'dayToday':S.salesDay=bizDay();renderMain();break;
@@ -1434,15 +1540,17 @@ document.addEventListener('click',function(e){
     case 'tablesReset':S.settings={tables:DEFAULT_TABLES};renderMain();w(function(){return S.db.doc('settings/main').set({tables:DEFAULT_TABLES,updatedAt:Date.now()});});break;
   }
 });
+document.addEventListener('mousedown',function(e){if(e.target.closest&&e.target.closest('.btool button,.bl .cir'))e.preventDefault();});
+document.addEventListener('touchstart',function(e){},{passive:true});
 document.addEventListener('change',function(e){
   var t=e.target,c=t.dataset&&t.dataset.chg;
-  if(t.id==='note-input'){if(t.value.trim())addNote();return;}
   if(!c)return;
   var id=t.dataset.id;
   if(c==='edNote'&&S.editor){S.editor.draft.note=t.value.trim();touch();}
 });
 document.addEventListener('input',function(e){
   var t=e.target;
+  if(t.matches&&t.matches('textarea[data-bid]')){boardInput(t);return;}
   if(t.id==='ed-q'&&S.editor){S.editor.q=t.value;renderEditorPicker();}
   else if(t.id==='m-q'){S.menuQ=t.value;$('#mlist').innerHTML=menuList();}
   else if(t.id==='co-tendered'&&S.co){S.co.tendered=t.value;renderCo();}
@@ -1453,16 +1561,17 @@ document.addEventListener('input',function(e){
   else if(t.id==='t-name'&&S.tsheet){S.tsheet.name=t.value;S.tsheet.rid=null;$('#t-regs').innerHTML=regChips(t.value,null,'tReg');}
 });
 document.addEventListener('keydown',function(e){
+  if(e.target.matches&&e.target.matches('textarea[data-bid]')){boardKey(e);return;}
   if(e.key!=='Enter')return;
   var id=e.target.id;
   if(id==='p-name')personOk();
   else if(id==='t-name')renameTo();
-  else if(id==='note-input'){e.preventDefault();addNote();}
   else if(id==='mf-price'||id==='mf-name'){saveM();}
   else if(id==='rf-name'||id==='rf-note'){saveR();}
   else if(id==='ed-ask-price')document.querySelector('[data-act="askOk"]').click();
   else if(id==='ed-cprice')document.querySelector('[data-act="customOk"]').click();
 });
+document.addEventListener('focusin',function(e){var t=e.target;if(t.matches&&t.matches('textarea[data-bid]')){boardFocus=t.dataset.bid;var fb=S.board[boardFocus];var bc=$('#b-check');if(bc)bc.className=fb&&fb.type==='check'?'on':'';}});
 window.addEventListener('pagehide',function(){if(S.editor)flushEditor();});
 document.addEventListener('visibilitychange',function(){if(document.hidden&&S.editor)flushEditor();});
 setInterval(function(){
