@@ -168,6 +168,23 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 .mgrid button{min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:500}
 .mgrid button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .cashrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.cashbox{background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.cashbox[hidden]{display:none}
+.cb-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cb-row label{font-size:14px;color:var(--ink-2)}
+.cb-row input{width:104px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;font-size:19px;font-weight:700}
+.cb-res{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:8px;min-height:30px}
+.cb-res b{font:700 26px var(--serif)}
+.cb-res .short{color:var(--stamp)}
+.cb-res .tip{color:var(--ok)}
+.givelink{border:0;background:none;color:var(--accent);font-size:14px;padding:4px 0 8px}
+#toast button{margin-left:12px;border:0;background:none;color:var(--accent-soft);font-weight:700;text-decoration:underline;padding:4px}
+.plog{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;border:0;border-top:1px solid var(--line);background:none;padding:6px 14px;text-align:left}
+.plog:first-child{border-top:0}
+.plog .t{color:var(--ink-2);font-size:13px;min-width:42px}
+.plog .w{flex:1;min-width:0}
+.plog .w small{display:block;color:var(--ink-2);font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.plog.undone{opacity:.5}
 .cashrow[hidden]{display:none}
 .cashrow input{width:110px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;font-size:18px}
 .change{font-weight:700;font-size:17px;margin-left:auto}
@@ -380,10 +397,10 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
       <div class="psum"><span>這次收</span><b class="num" id="co-amt">$0</b></div>
       <div class="muted" id="co-even"></div>
       <div class="mgrid" id="co-methods" aria-label="付款方式"></div>
-      <div class="cashrow" id="co-cash" hidden>
-        <input id="co-tendered" type="number" inputmode="numeric" min="0" placeholder="收多少" aria-label="收到金額">
-        <span class="chips" id="co-quick" style="padding:0"></span>
-        <span class="change num" id="co-change"></span>
+      <button class="givelink" id="co-give" data-act="coGive" hidden>客人多給？</button>
+      <div class="cashbox" id="co-cash" hidden>
+        <div class="cb-row"><label for="co-tendered" id="co-tlabel">客人給</label><input id="co-tendered" type="number" inputmode="numeric" min="0" aria-label="收到金額"><span class="chips" id="co-quick" style="padding:0"></span></div>
+        <div class="cb-res num" id="co-change"></div>
       </div>
       <button class="btn primary big" id="co-confirm" data-act="coPay" disabled>收款</button>
     </div>
@@ -443,6 +460,13 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
   <button class="btn danger big" id="rf-del" data-act="rDel" style="margin-top:8px">刪除這位熟客</button>
 </section>
 
+<!-- 修改收款 -->
+<div class="sheet-back" id="x-back" data-act="closeX" hidden></div>
+<section class="sheet" id="x-sheet" role="dialog" aria-label="修改收款" hidden>
+  <div class="shd"><h2 id="x-title">收款</h2><button class="sx" data-act="closeX" aria-label="關閉">×</button></div>
+  <div id="x-body"></div>
+</section>
+
 <div id="toast" role="status" hidden></div>
 
 <script>
@@ -477,10 +501,10 @@ var payDaysOf=function(payments){var d=[];payments.forEach(function(p){var k=biz
 var groupOf=function(t){var m=/^([A-Za-z]+)/.exec(String(t).trim());if(m)return m[1].toUpperCase()+' 區';if(String(t).indexOf('包')>=0)return '包廂';return '其他';};
 function groupTables(list){var out=[],idx={};list.forEach(function(t){var g=groupOf(t);if(!(g in idx)){idx[g]=out.length;out.push({name:g,tables:[]});}out[idx[g]].tables.push(t);});return out;}
 function dayStats(orders,day){
-  var byMethod={},items={},total=0,units=0,seen={};
+  var byMethod={},items={},total=0,units=0,seen={},tips=0;
   orders.forEach(function(o){(o.payments||[]).forEach(function(p){
     if(bizDay(p.at)!==day)return;
-    total+=p.amount;byMethod[p.method]=(byMethod[p.method]||0)+p.amount;seen[o.id]=1;
+    total+=p.amount;tips+=p.tip||0;byMethod[p.method]=(byMethod[p.method]||0)+p.amount;seen[o.id]=1;
     (p.lines||[]).forEach(function(l){
       if(!l.menuId)return;
       var it=items[l.name]||(items[l.name]={name:l.name,qty:0,amount:0});
@@ -488,7 +512,7 @@ function dayStats(orders,day){
     });
   });});
   var count=Object.keys(seen).length;
-  return {total:total,count:count,units:units,avg:count?total/count:0,byMethod:byMethod,
+  return {total:total,tips:tips,count:count,units:units,avg:count?total/count:0,byMethod:byMethod,
     top:Object.keys(items).map(function(k){return items[k];}).sort(function(a,b){return b.qty-a.qty||b.amount-a.amount;})};
 }
 /*END*/
@@ -537,7 +561,12 @@ function syncLocal(o){
   if(!serving&&inPend)S.pend=S.pend.filter(function(x){return x.id!==o.id;});
 }
 var toastTimer;
-function toast(msg){var t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true;},2800);}
+var toastFn=null;
+function toast(msg,label,fn){
+  var t=$('#toast');toastFn=fn||null;
+  t.innerHTML='<span>'+esc(msg)+'</span>'+(label?'<button data-act="toastAct">'+esc(label)+'</button>':'');
+  t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true;toastFn=null;},label?7000:2800);
+}
 function w(fn){
   if(!S.db){toast('沒有連到資料庫，無法儲存');return Promise.resolve();}
   return Promise.resolve().then(fn).catch(function(e){console.error(e);toast('沒有存成功（'+((e&&e.code)||'錯誤')+'），請再試一次');});
@@ -546,7 +575,8 @@ function arm(key,ms){S.confirm=key;clearTimeout(arm.t);arm.t=setTimeout(function
 function rerenderConfirmable(){
   if(S.editor)renderEditorCart();
   if(S.co)renderCo();
-  if(!S.editor&&!S.co&&S.view!=='notes')renderMain();
+  if(S.xsheet)renderX();
+  if(!S.editor&&!S.co&&S.view!=='notes'&&!S.xsheet)renderMain();
   if(S.view==='notes'&&$('#b-clear'))$('#b-clear').textContent='清除已劃掉';
 }
 
@@ -908,6 +938,7 @@ function salesView(){
     if(S.open.length)out='<p class="muted">還有 '+S.open.length+' 桌沒結，'+money(pend)+'</p>';
   }
   var head='<div class="card"><div class="muted">營業額</div><div class="big-total num">'+money(st.total)+'</div>'+
+    (st.tips?'<div class="ok">另收小費 '+money(st.tips)+'</div>':'')+
     '<div class="muted">早上 6 點換日</div></div>'+
     '<div class="kpi"><div><small>結帳單數</small><b class="num">'+st.count+'</b></div><div><small>平均每單</small><b class="num">'+money(st.avg)+'</b></div><div><small>賣出品項</small><b class="num">'+st.units+'</b></div></div>';
   var ms=Object.keys(st.byMethod).sort(function(a,b){return st.byMethod[b]-st.byMethod[a];});
@@ -915,7 +946,16 @@ function salesView(){
     var pct=st.total>0?Math.round(st.byMethod[m]/st.total*100):0;
     return '<div class="mline"><span>'+esc(m)+'</span><div class="bar"><i style="width:'+Math.max(0,pct)+'%"></i></div><b class="num">'+money(st.byMethod[m])+'</b></div>';
   }).join(''):'<p class="muted">這天還沒有收款。</p>')+'</div>';
-  return nav+out+head+methods;
+  // 收款紀錄：點一筆可以改付款方式或撤銷
+  var logs=[];rec.orders.forEach(function(o){(o.payments||[]).forEach(function(p,i){if(bizDay(p.at)===day)logs.push({o:o,p:p,i:i});});});
+  logs.sort(function(a,b){return b.p.at-a.p.at;});
+  var log='<div class="sec"><h2>收款紀錄</h2><span class="muted">點一筆可以修改</span></div>'+(logs.length?'<div class="card" style="padding:0">'+logs.map(function(x){
+    var names=(x.p.lines||[]).map(function(l){return l.name+(l.qty>1?'×'+l.qty:'');}).join('、');
+    return '<button class="plog" data-act="plogOpen" data-oid="'+esc(x.o.id)+'" data-v="'+x.i+'"><span class="t num">'+fmtTime(x.p.at)+'</span>'+
+      '<span class="w"><b>'+esc(labelOf(x.o))+'</b> <span class="muted">'+esc(x.p.method)+'</span><small>'+esc(names)+'</small></span>'+
+      '<b class="num">'+money(x.p.amount)+(x.p.tip?'<small class="ok" style="display:block;font-size:12px;text-align:right">＋'+money(x.p.tip)+'</small>':'')+'</b></button>';
+  }).join('')+'</div>':'<p class="muted">這天還沒有收款。</p>');
+  return nav+out+head+methods+log;
 }
 
 /* ----- 設定 ----- */
@@ -1302,7 +1342,7 @@ function openCheckout(){
   flushEditor().then(function(){
     if(!E.id){toast('還沒點東西');return;}
     var o=findOrder(E.id);if(!o)return;
-    S.co={id:E.id,sel:{},mode:'all',method:null,tendered:'',done:false};
+    S.co={id:E.id,sel:{},mode:'all',method:null,tendered:'',tip:false,give:false};
     selectAll();
     $('#co-tendered').value='';
     $('#checkout').hidden=false;$('#co-scroll').scrollTop=0;
@@ -1350,17 +1390,31 @@ function renderCo(){
   $('#co-amt').textContent=money(amt);
   $('#co-even').textContent=(C.mode==='all'&&amt>0)?'平分　2 人 '+money(Math.ceil(amt/2))+'　3 人 '+money(Math.ceil(amt/3))+'　4 人 '+money(Math.ceil(amt/4)):(n?n+' 樣':'');
   $('#co-methods').innerHTML=METHODS.map(function(m){return '<button class="'+(C.method===m?'on':'')+'" data-act="coMethod" data-v="'+esc(m)+'">'+esc(m)+'</button>';}).join('');
-  var cash=C.method==='現金';
-  $('#co-cash').hidden=!cash;
-  if(cash){
-    $('#co-quick').innerHTML=[['剛好',amt],['500',500],['1000',1000],['2000',2000]].filter(function(x,i){return i===0||x[1]>=amt;}).slice(0,3).map(function(x){return '<button class="chip mini" data-act="coQuick" data-v="'+x[1]+'">'+x[0]+'</button>';}).join('');
-    var t=Number(C.tendered)||0;
-    $('#co-change').textContent=C.tendered===''?'':(t>=amt?'找 '+money(t-amt):'還差 '+money(amt-t));
+  var cash=C.method==='現金',showBox=cash||(C.method&&C.give);
+  $('#co-give').hidden=!C.method||cash||C.give;
+  $('#co-cash').hidden=!showBox;
+  var t=Number(C.tendered)||0,over=C.tendered!==''&&t>amt,short=C.tendered!==''&&t<amt;
+  if(showBox){
+    $('#co-tlabel').textContent=cash?'客人給':'實收';
+    $('#co-quick').innerHTML=quickCash(amt).map(function(v,i){return '<button class="chip mini" data-act="coQuick" data-v="'+v+'">'+(i===0?'剛好':money(v))+'</button>';}).join('');
+    var res='';
+    if(C.tendered!==''){
+      if(short)res='<span class="short">還差</span><b class="short">'+money(amt-t)+'</b>';
+      else if(!over)res='<span>剛好</span><b>✓</b>';
+      else if(cash&&!C.tip)res='<span>找 <b>'+money(t-amt)+'</b></span><button class="chip mini" data-act="coTip">不用找，算小費</button>';
+      else res='<span class="tip">小費 <b>'+money(t-amt)+'</b></span>'+(cash?'<button class="chip mini" data-act="coTip">改回找零</button>':'');
+    }
+    $('#co-change').innerHTML=res;
   }
-  var short=cash&&C.tendered!==''&&(Number(C.tendered)||0)<amt;
   var b=$('#co-confirm');
-  b.disabled=!n||!C.method||short;
-  b.textContent=!n?'先點要收的品項':(!C.method?'選付款方式':(short?'金額不夠':'收款 '+money(amt)+' · '+C.method));
+  b.disabled=!n||!C.method||(showBox&&short);
+  b.textContent=!n?'先點要收的品項':(!C.method?'選付款方式':((showBox&&short)?'金額不夠':'收款 '+money(amt)+' · '+C.method+((over&&(C.tip||!cash))?' ＋小費 '+money(t-amt):'')));
+}
+// 找零快捷：剛好、湊整百、湊整五百、湊整千、兩千
+function quickCash(amt){
+  var c=[amt,Math.ceil(amt/100)*100,Math.ceil(amt/500)*500,Math.ceil(amt/1000)*1000,2000],out=[];
+  c.forEach(function(v){if(v>=amt&&v>0&&out.indexOf(v)<0)out.push(v);});
+  return out.slice(0,4);
 }
 function coPay(){
   var C=S.co;if(!C)return;
@@ -1370,7 +1424,8 @@ function coPay(){
   if(!lines.length)return;
   var amount=lines.reduce(function(s,l){return s+l.price*l.qty;},0);
   var pay={at:Date.now(),method:C.method,amount:amount,lines:lines};
-  if(C.method==='現金'&&C.tendered!=='')pay.tendered=Number(C.tendered);
+  var given=Number(C.tendered)||0,showBox=C.method==='現金'||C.give;
+  if(showBox&&C.tendered!==''){pay.tendered=given;if(given>amount&&(C.tip||C.method!=='現金'))pay.tip=given-amount;}
   var payments=(o.payments||[]).concat([pay]);
   var closed=isClosed({items:o.items,payments:payments});
   var payDays=payDaysOf(payments);
@@ -1380,25 +1435,23 @@ function coPay(){
   var c=clone(o);c.payments=payments;c.payDays=payDays;c.status=upd.status;c.closedAt=upd.closedAt;syncLocal(c);
   var rec=S.days[bizDay(pay.at)];
   if(rec&&!rec.orders.some(function(x){return x.id===id;}))rec.orders.push(clone(c));
-  var change=pay.tendered!=null&&pay.tendered>amount?'，找 '+money(pay.tendered-amount):'';
+  var change=pay.tip?'，小費 '+money(pay.tip):(pay.tendered!=null&&pay.tendered>amount?'，找 '+money(pay.tendered-amount):'');
+  var pidx=payments.length-1;
   w(function(){return S.db.doc('orders/'+id).update(upd);});
   if(closed){
     S.co=null;$('#checkout').hidden=true;
     if(S.editor){clearTimeout(S.editor.timer);S.editor=null;$('#editor').hidden=true;}
     S.view='tables';render();
-    toast(labelOf(o)+' 結清了 ✓ '+C.method+' '+money(amount)+change);
+    toast(labelOf(o)+' 結清了 ✓ '+C.method+' '+money(amount)+change,'復原',function(){undoPayment(id,pidx);});
   }else{
-    C.sel={};C.method=null;C.tendered='';C.mode='split';$('#co-tendered').value='';
+    C.sel={};C.method=null;C.tendered='';C.tip=false;C.give=false;C.mode='split';$('#co-tendered').value='';
     renderCo();if(S.editor)renderEditorCart();renderMain();
-    toast('收了 '+money(amount)+' '+pay.method+change+'，還剩 '+money(orderTotal(c)-paidAmount(c)));
+    toast('收了 '+money(amount)+' '+pay.method+change+'，還剩 '+money(orderTotal(c)-paidAmount(c)),'復原',function(){undoPayment(id,pidx);});
   }
 }
-function coUndo(idx){
-  var C=S.co;if(!C)return;
-  var key='undo:'+idx;
-  if(S.confirm!==key){arm(key,4000);renderCo();return;}
-  S.confirm=null;
-  var o=findOrder(C.id);if(!o||!o.payments||!o.payments[idx])return;
+// 撤銷某一筆收款：那張單回到未結帳，可以再改
+function undoPayment(orderId,idx){
+  var o=findOrder(orderId);if(!o||!o.payments||!o.payments[idx])return;
   var removed=o.payments[idx];
   var payments=o.payments.filter(function(p,i){return i!==idx;}),payDays=payDaysOf(payments);
   var upd={payments:payments,payDays:payDays,status:'open',closedAt:null};
@@ -1406,12 +1459,53 @@ function coUndo(idx){
   var c=clone(o);c.payments=payments;c.payDays=payDays;c.status='open';c.closedAt=null;syncLocal(c);
   var rec=S.days[bizDay(removed.at)];
   if(rec&&!payments.some(function(p){return bizDay(p.at)===bizDay(removed.at);}))rec.orders=rec.orders.filter(function(x){return x.id!==o.id;});
-  selectAll();C.mode='split';C.sel={};
-  renderCo();if(S.editor)renderEditorCart();renderMain();
-  toast('已撤銷 '+removed.method+' '+money(removed.amount));
+  if(S.co&&S.co.id===o.id){S.co.mode='split';S.co.sel={};renderCo();}
+  if(S.editor)renderEditorCart();
+  renderMain();renderTabs();
+  toast('已撤銷 '+labelOf(o)+' '+removed.method+' '+money(removed.amount)+'，回到未結帳');
   w(function(){return S.db.doc('orders/'+o.id).update(upd);});
 }
+function coUndo(idx){
+  var C=S.co;if(!C)return;
+  var key='undo:'+idx;
+  if(S.confirm!==key){arm(key,4000);renderCo();return;}
+  S.confirm=null;undoPayment(C.id,idx);
+}
 function closeCo(){S.co=null;S.confirm=null;$('#checkout').hidden=true;if(S.editor){syncEditor();renderEditorCart();}}
+
+/* ---------- 修改一筆收款 ---------- */
+function openX(oid,idx){S.xsheet={oid:oid,idx:idx};S.confirm=null;$('#x-back').hidden=false;$('#x-sheet').hidden=false;renderX();}
+function closeX(){S.xsheet=null;S.confirm=null;$('#x-back').hidden=true;$('#x-sheet').hidden=true;}
+function renderX(){
+  var X=S.xsheet;if(!X)return;
+  var o=findOrder(X.oid),p=o&&o.payments&&o.payments[X.idx];
+  if(!p){closeX();return;}
+  $('#x-title').textContent=labelOf(o)+' · '+fmtTime(p.at);
+  var lines=(p.lines||[]).map(function(l){return '<div class="srow" style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)"><span>'+esc(l.name)+(l.qty>1?' ×'+l.qty:'')+'</span><span class="num">'+money(l.price*l.qty)+'</span></div>';}).join('');
+  $('#x-body').innerHTML=lines+
+    '<div class="psum" style="margin-top:8px"><span>金額</span><b class="num">'+money(p.amount)+'</b></div>'+
+    (p.tip?'<div class="ok" style="text-align:right">小費 '+money(p.tip)+'</div>':'')+
+    (p.tendered!=null&&!p.tip&&p.tendered>p.amount?'<div class="muted" style="text-align:right">收 '+money(p.tendered)+'，找 '+money(p.tendered-p.amount)+'</div>':'')+
+    '<div class="lab">付款方式</div><div class="mgrid">'+METHODS.map(function(m){return '<button class="'+(p.method===m?'on':'')+'" data-act="xMethod" data-v="'+esc(m)+'">'+esc(m)+'</button>';}).join('')+'</div>'+
+    '<button class="btn big" data-act="xOrder">打開這張單</button>'+
+    '<button class="btn danger big" data-act="xUndo" style="margin-top:8px">'+(S.confirm==='xUndo'?'再按一次撤銷':'撤銷這筆收款')+'</button>'+
+    '<p class="muted" style="margin:8px 0 0">撤銷後這張單回到未結帳，可以改品項再重新結。</p>';
+}
+function xMethod(m){
+  var X=S.xsheet;if(!X)return;
+  var o=findOrder(X.oid);if(!o||!o.payments[X.idx])return;
+  var payments=clone(o.payments);if(payments[X.idx].method===m)return;
+  var from=payments[X.idx].method;payments[X.idx].method=m;
+  if(m!=='現金'&&payments[X.idx].tendered!=null&&!payments[X.idx].tip)delete payments[X.idx].tendered;
+  eachCopy(o.id,function(x){x.payments=clone(payments);});
+  renderX();renderMain();toast('已改成 '+m+'（原本 '+from+'）');
+  w(function(){return S.db.doc('orders/'+o.id).update({payments:payments});});
+}
+function xUndo(){
+  var X=S.xsheet;if(!X)return;
+  if(S.confirm!=='xUndo'){arm('xUndo',4000);renderX();return;}
+  S.confirm=null;var oid=X.oid,idx=X.idx;closeX();undoPayment(oid,idx);
+}
 
 /* ---------- 菜單編輯 ---------- */
 function saveMenu(items){
@@ -1485,8 +1579,16 @@ document.addEventListener('click',function(e){
       var o=findOrder(C.id),rem=remainingMap(o),all=Object.keys(rem).every(function(x){return (C.sel[x]||0)===rem[x];});
       C.mode=all?'all':'split';
       renderCo();break;}
-    case 'coMethod':S.co.method=v;renderCo();break;
+    case 'coMethod':S.co.method=v;if(v!=='現金'){S.co.tip=false;}renderCo();break;
     case 'coQuick':S.co.tendered=String(v);$('#co-tendered').value=v;renderCo();break;
+    case 'coTip':S.co.tip=!S.co.tip;renderCo();break;
+    case 'coGive':S.co.give=true;renderCo();setTimeout(function(){$('#co-tendered').focus();},30);break;
+    case 'toastAct':{var f=toastFn;toastFn=null;$('#toast').hidden=true;if(f)f();break;}
+    case 'plogOpen':openX(t.dataset.oid,Number(v));break;
+    case 'closeX':closeX();break;
+    case 'xMethod':xMethod(v);break;
+    case 'xUndo':xUndo();break;
+    case 'xOrder':{var xo=S.xsheet&&S.xsheet.oid;closeX();if(xo)openEditor(xo);break;}
     case 'coPay':coPay();break;
     case 'coUndo':coUndo(Number(v));break;
     case 'svSeg':S.svType=v;renderMain();break;
