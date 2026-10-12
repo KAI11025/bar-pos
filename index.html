@@ -190,6 +190,8 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 .change{font-weight:700;font-size:17px;margin-left:auto}
 .done-card{text-align:center;padding:30px 10px}
 .done-card .big{font:700 34px var(--serif);color:var(--ok)}
+.coacts{display:flex;gap:8px;margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
+.coacts .btn{flex:1}
 
 /* 出餐 */
 .sv{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden}
@@ -305,7 +307,7 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 .sheet .lab{font-size:13px;color:var(--ink-2);margin:12px 0 6px}
 .sheet input.txt{width:100%;min-height:50px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 12px;margin:0 0 8px;font-size:17px}
 .sheet .tt{min-height:60px}
-#toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;max-width:calc(100% - 32px);font-weight:500}
+#toast{position:fixed;left:50%;bottom:calc(70px + env(safe-area-inset-bottom,0px));font-size:14px;pointer-events:none;transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;max-width:calc(100% - 32px);font-weight:500}
 #toast[hidden]{display:none}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
 
@@ -525,7 +527,7 @@ var clone=function(x){return JSON.parse(JSON.stringify(x));};
 
 var S={db:null,state:'connecting',menu:{items:[]},menuMap:{},menuLoaded:false,regs:[],settings:{},settingsLoaded:false,
   open:[],openLoaded:false,pend:[],days:{},notes:[],notesLoaded:false,board:{},boardLoaded:false,migrated:false,
-  view:'tables',msheet:null,rsheet:null,svType:'drink',svBy:(function(){try{return localStorage.getItem('pos.svBy')||'seat';}catch(x){return 'seat';}})(),salesDay:bizDay(),setSec:null,
+  view:'tables',wake:(function(){try{return localStorage.getItem('pos.wake')==='1';}catch(x){return false;}})(),wakeLock:null,msheet:null,rsheet:null,svType:'drink',svBy:(function(){try{return localStorage.getItem('pos.svBy')||'seat';}catch(x){return 'seat';}})(),salesDay:bizDay(),setSec:null,
   editor:null,co:null,tsheet:null,psheet:null,confirm:null,menuQ:''};
 var tablesList=function(){var t=S.settings&&S.settings.tables;return (t&&t.length)?t:DEFAULT_TABLES;};
 
@@ -565,7 +567,7 @@ var toastFn=null;
 function toast(msg,label,fn){
   var t=$('#toast');toastFn=fn||null;
   t.innerHTML='<span>'+esc(msg)+'</span>'+(label?'<button data-act="toastAct">'+esc(label)+'</button>':'');
-  t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true;toastFn=null;},label?7000:2800);
+  t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true;toastFn=null;},label?6000:1800);
 }
 function w(fn){
   if(!S.db){toast('沒有連到資料庫，無法儲存');return Promise.resolve();}
@@ -635,6 +637,7 @@ function startDb(db){
     renderTabs();if(S.view==='notes')renderMain();
   },function(e){console.error(e);});
   ensureDay(bizDay());
+  for(var di=1;di<7;di++)ensureDay(shiftDay(bizDay(),-di));
   render();
 }
 
@@ -972,6 +975,7 @@ function settingsView(){
     row('menu','菜單',items.length+' 項'+(unpriced?' · '+unpriced+' 款沒價格':''))+
     row('regs','熟客',S.regs.length+' 位')+
     row('tables','桌位',tablesList().length+' 桌')+'</div>'+
+    '<div class="glist"><button class="grow" data-act="wakeToggle"><span class="gl">營業中螢幕不熄滅</span><span class="gv">'+(S.wake?'開':'關')+'</span></button></div>'+
     '<div class="glist"><button class="grow danger" data-act="logout">登出</button></div>';
 }
 function menuSetView(){
@@ -1080,13 +1084,13 @@ function delR(){
 /* ---------- 點餐 ---------- */
 function openEditor(id){
   var o=findOrder(id);if(!o)return;
-  S.editor={id:id,cat:'全部',q:'',ask:null,dirty:false,timer:null,cartOpen:isClosed(o),
+  S.editor={id:id,cat:favItems().length?'常點':'全部',q:'',ask:null,dirty:false,timer:null,cartOpen:isClosed(o),
     draft:{kind:kindOf(o),table:tableOf(o),rid:ridOf(o),note:o.note||'',items:clone(o.items||[])}};
   showEditor();
 }
 // 新的單先不建資料，點了第一樣東西才存，避免手滑點到空桌就多一張空單
 function openDraft(kind,table,rid){
-  S.editor={id:null,cat:'全部',q:'',ask:null,dirty:false,timer:null,draft:{kind:kind,table:table,rid:rid||null,note:'',items:[]}};
+  S.editor={id:null,cat:favItems().length?'常點':'全部',q:'',ask:null,dirty:false,timer:null,draft:{kind:kind,table:table,rid:rid||null,note:'',items:[]}};
   showEditor();
 }
 function showEditor(){
@@ -1111,16 +1115,29 @@ function renderEditorTop(){
   var gn=$('#ed-gnote');
   if(r&&r.note){gn.textContent='熟客備註：'+r.note;gn.hidden=false;}else gn.hidden=true;
 }
+// 常點：最近七天加上現在開著的單，點最多次的 12 樣
+var favCache={at:0,list:[]};
+function favItems(){
+  if(Date.now()-favCache.at<60000&&favCache.list.length)return favCache.list;
+  var cnt={},seen={};
+  var add=function(o){if(seen[o.id])return;seen[o.id]=1;(o.items||[]).forEach(function(l){if(l.menuId&&S.menuMap[l.menuId]&&S.menuMap[l.menuId].active!==false)cnt[l.menuId]=(cnt[l.menuId]||0)+l.qty;});};
+  S.open.forEach(add);Object.keys(S.days).forEach(function(k){S.days[k].orders.forEach(add);});
+  var list=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];}).slice(0,12);
+  favCache={at:Date.now(),list:list};return list;
+}
 function renderEditorPicker(){
   var E=S.editor;if(!E)return;
-  var cats=['全部'].concat(menuCats());
+  var fav=favItems();
+  var cats=(fav.length?['常點']:[]).concat(['全部']).concat(menuCats());
+  if(E.cat==='常點'&&!fav.length)E.cat='全部';
   $('#ed-chips').innerHTML=cats.map(function(c){return '<button class="chip'+(E.cat===c?' on':'')+'" data-act="edCat" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('');
   var q=E.q.trim().toLowerCase();
   var counts={};E.draft.items.forEach(function(l){if(l.menuId)counts[l.menuId]=(counts[l.menuId]||0)+l.qty;});
   var items=menuItems().filter(function(m){
+    if(!q&&E.cat==='常點')return fav.indexOf(m.id)>=0;
     if(!q&&E.cat!=='全部'&&m.cat!==E.cat)return false;
     return !q||(m.name+' '+(m.en||'')).toLowerCase().indexOf(q)>=0;
-  }).sort(function(a,b){return (a.active===false)-(b.active===false);});
+  }).sort(function(a,b){return (a.active===false)-(b.active===false)||(E.cat==='常點'&&!q?fav.indexOf(a.id)-fav.indexOf(b.id):0);});
   var g=$('#ed-grid');
   if(!items.length){g.innerHTML='<p class="muted" style="grid-column:1/-1">'+(menuItems().length?'找不到':'菜單是空的')+'</p>';return;}
   g.innerHTML=items.map(function(m){
@@ -1376,8 +1393,12 @@ function renderCo(){
         (p.lines||[]).map(function(l){return '<div class="pl"><s>'+esc(l.name)+(l.qty>1?' ×'+l.qty:'')+'</s> <span class="num">'+money(l.price*l.qty)+'</span></div>';}).join('');
     }).join('')+'</div>';
   }
+  var hasPay=(o.payments||[]).length>0;
+  var acts='<div class="coacts">'+(hasPay?'<button class="btn" data-act="coReopen">'+(S.confirm==='reopen'?'再按一次恢復':'恢復未結帳')+'</button>':'')+
+    '<button class="btn danger" data-act="coDelete">'+(S.confirm==='codel'?'再按一次刪除':'刪除這張單')+'</button></div>';
+  paidHtml+=acts;
   if(closed){
-    $('#co-mode').innerHTML='';$('#co-hint').textContent='';
+    $('#co-mode').innerHTML='';$('#co-hint').textContent='';$('#co-hint').hidden=true;
     $('#co-list').innerHTML='<div class="done-card"><div class="big">✓ 付清了</div></div>'+paidHtml;
     $('#co-foot').hidden=true;
     return;
@@ -1401,14 +1422,14 @@ function renderCo(){
     if(C.tendered!==''){
       if(short)res='<span class="short">還差</span><b class="short">'+money(amt-t)+'</b>';
       else if(!over)res='<span>剛好</span><b>✓</b>';
-      else if(cash&&!C.tip)res='<span>找 <b>'+money(t-amt)+'</b></span><button class="chip mini" data-act="coTip">不用找，算小費</button>';
-      else res='<span class="tip">小費 <b>'+money(t-amt)+'</b></span>'+(cash?'<button class="chip mini" data-act="coTip">改回找零</button>':'');
+      else if(cash&&!C.tip)res='<span>找 <b>'+money(t-amt)+'</b></span><button class="chip mini" data-act="coTip">不用找</button>';
+      else res='<span class="tip">'+(cash?'不用找':'多給')+' <b>'+money(t-amt)+'</b></span>'+(cash?'<button class="chip mini" data-act="coTip">要找零</button>':'');
     }
     $('#co-change').innerHTML=res;
   }
   var b=$('#co-confirm');
   b.disabled=!n||!C.method||(showBox&&short);
-  b.textContent=!n?'先點要收的品項':(!C.method?'選付款方式':((showBox&&short)?'金額不夠':'收款 '+money(amt)+' · '+C.method+((over&&(C.tip||!cash))?' ＋小費 '+money(t-amt):'')));
+  b.textContent=!n?'先點要收的品項':(!C.method?'選付款方式':((showBox&&short)?'金額不夠':'收款 '+money(amt)+' · '+C.method));
 }
 // 找零快捷：剛好、湊整百、湊整五百、湊整千、兩千
 function quickCash(amt){
@@ -1442,11 +1463,9 @@ function coPay(){
     S.co=null;$('#checkout').hidden=true;
     if(S.editor){clearTimeout(S.editor.timer);S.editor=null;$('#editor').hidden=true;}
     S.view='tables';render();
-    toast(labelOf(o)+' 結清了 ✓ '+C.method+' '+money(amount)+change,'復原',function(){undoPayment(id,pidx);});
   }else{
     C.sel={};C.method=null;C.tendered='';C.tip=false;C.give=false;C.mode='split';$('#co-tendered').value='';
     renderCo();if(S.editor)renderEditorCart();renderMain();
-    toast('收了 '+money(amount)+' '+pay.method+change+'，還剩 '+money(orderTotal(c)-paidAmount(c)),'復原',function(){undoPayment(id,pidx);});
   }
 }
 // 撤銷某一筆收款：那張單回到未結帳，可以再改
@@ -1470,6 +1489,29 @@ function coUndo(idx){
   var key='undo:'+idx;
   if(S.confirm!==key){arm(key,4000);renderCo();return;}
   S.confirm=null;undoPayment(C.id,idx);
+}
+// 恢復未結帳：把這張單所有收款撤銷
+function reopenOrder(orderId){
+  var o=findOrder(orderId);if(!o||!(o.payments||[]).length)return;
+  var removedDays=payDaysOf(o.payments);
+  var upd={payments:[],payDays:[],status:'open',closedAt:null};
+  eachCopy(o.id,function(x){x.payments=[];x.payDays=[];x.status='open';x.closedAt=null;});
+  var c=clone(o);c.payments=[];c.payDays=[];c.status='open';c.closedAt=null;syncLocal(c);
+  removedDays.forEach(function(d){var rec=S.days[d];if(rec)rec.orders=rec.orders.filter(function(x){return x.id!==o.id;});});
+  if(S.co&&S.co.id===o.id){selectAll();renderCo();}
+  if(S.editor)renderEditorCart();
+  renderMain();renderTabs();toast(labelOf(o)+' 已恢復成未結帳');
+  w(function(){return S.db.doc('orders/'+o.id).update(upd);});
+}
+// 刪除整張單（就算收過錢也可以，營業額會一起扣掉）
+function removeOrder(orderId){
+  var o=findOrder(orderId);if(!o)return;
+  S.open=S.open.filter(function(x){return x.id!==orderId;});S.pend=S.pend.filter(function(x){return x.id!==orderId;});
+  Object.keys(S.days).forEach(function(k){S.days[k].orders=S.days[k].orders.filter(function(x){return x.id!==orderId;});});
+  if(S.co&&S.co.id===orderId){S.co=null;$('#checkout').hidden=true;}
+  if(S.editor&&S.editor.id===orderId){clearTimeout(S.editor.timer);S.editor=null;$('#editor').hidden=true;}
+  S.view='tables';render();toast('已刪除 '+labelOf(o));
+  w(function(){return S.db.doc('orders/'+orderId).delete();});
 }
 function closeCo(){S.co=null;S.confirm=null;$('#checkout').hidden=true;if(S.editor){syncEditor();renderEditorCart();}}
 
@@ -1582,6 +1624,8 @@ document.addEventListener('click',function(e){
     case 'coMethod':S.co.method=v;if(v!=='現金'){S.co.tip=false;}renderCo();break;
     case 'coQuick':S.co.tendered=String(v);$('#co-tendered').value=v;renderCo();break;
     case 'coTip':S.co.tip=!S.co.tip;renderCo();break;
+    case 'coReopen':if(S.confirm!=='reopen'){arm('reopen',4000);renderCo();break;}S.confirm=null;reopenOrder(S.co.id);break;
+    case 'coDelete':if(S.confirm!=='codel'){arm('codel',4000);renderCo();break;}S.confirm=null;removeOrder(S.co.id);break;
     case 'coGive':S.co.give=true;renderCo();setTimeout(function(){$('#co-tendered').focus();},30);break;
     case 'toastAct':{var f=toastFn;toastFn=null;$('#toast').hidden=true;if(f)f();break;}
     case 'plogOpen':openX(t.dataset.oid,Number(v));break;
@@ -1615,6 +1659,8 @@ document.addEventListener('click',function(e){
     case 'dayToday':S.salesDay=bizDay();renderMain();break;
     case 'setSec':S.setSec=v||null;S.menuQ='';renderMain();window.scrollTo(0,0);break;
     case 'logout':if(window.POSAUTH)window.POSAUTH.logout();break;
+    case 'wakeToggle':S.wake=!S.wake;try{localStorage.setItem('pos.wake',S.wake?'1':'');}catch(x){}applyWake();renderMain();
+      if(S.wake&&!('wakeLock' in navigator))toast('這支手機不支援，請到 iPhone 設定把自動鎖定調長');break;
     case 'mNew':openM(null);break;
     case 'mEdit':openM(id);break;
     case 'closeM':closeM();break;
@@ -1674,6 +1720,15 @@ document.addEventListener('keydown',function(e){
   else if(id==='ed-cprice')document.querySelector('[data-act="customOk"]').click();
 });
 document.addEventListener('focusin',function(e){var t=e.target;if(t.matches&&t.matches('textarea[data-bid]')){boardFocus=t.dataset.bid;var fb=S.board[boardFocus];var bc=$('#b-check');if(bc)bc.className=fb&&fb.type==='check'?'on':'';}});
+// 螢幕不熄滅：支援的手機會一直亮著
+function applyWake(){
+  if(!('wakeLock' in navigator))return;
+  if(S.wake&&!S.wakeLock&&document.visibilityState==='visible'){
+    navigator.wakeLock.request('screen').then(function(l){S.wakeLock=l;l.addEventListener('release',function(){S.wakeLock=null;});}).catch(function(){});
+  }else if(!S.wake&&S.wakeLock){S.wakeLock.release();S.wakeLock=null;}
+}
+document.addEventListener('visibilitychange',applyWake);
+document.addEventListener('click',function once(){applyWake();},{once:true});
 window.addEventListener('pagehide',function(){if(S.editor)flushEditor();});
 document.addEventListener('visibilitychange',function(){if(document.hidden&&S.editor)flushEditor();});
 setInterval(function(){
