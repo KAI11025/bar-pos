@@ -351,8 +351,8 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
   <form id="login-form" class="lcard">
     <h1>J角 點單收銀</h1>
     
-    <input id="login-email" type="email" autocomplete="username" placeholder="店帳號 email" aria-label="email" required>
-    <input id="login-pass" type="password" autocomplete="current-password" placeholder="店內密碼" aria-label="店內密碼" required>
+    <input id="login-name" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" placeholder="帳號" aria-label="帳號" required>
+    <input id="login-pass" type="password" autocomplete="current-password" placeholder="密碼" aria-label="密碼" required>
     <button class="btn primary big" type="submit">登入</button>
     <p id="login-err" class="lerr" hidden></p>
   </form>
@@ -363,7 +363,7 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
   <button class="mebtn" data-act="meOpen" id="me-btn" hidden></button>
   <button class="btn primary" data-act="personNew" id="btn-new">＋ 熟客</button>
 </div></header>
-<div id="who" hidden><div class="whoin" id="who-in"></div></div>
+
 <main><div class="wrap" id="main"></div></main>
 <nav class="tabs" aria-label="主選單"><div class="wrap" id="tabs"></div></nav>
 
@@ -518,11 +518,20 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 <div class="sheet-back" id="s-back" data-act="closeS" hidden></div>
 <section class="sheet" id="s-sheet" role="dialog" aria-label="員工" hidden>
   <div class="shd"><h2 id="s-title">員工</h2><button class="sx" data-act="closeS" aria-label="關閉">×</button></div>
-  <div class="lab">名字</div><input id="sf-name" class="txt" autocomplete="off">
-  <div class="lab">密碼（4 位數字）</div><input id="sf-pin" class="txt" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
+  <div class="lab">帳號（登入用的名字）</div><input id="sf-name" class="txt" autocomplete="off" autocapitalize="off">
+  <div class="lab" id="sf-pinlab">密碼</div><input id="sf-pin" class="txt" type="text" autocomplete="off" autocapitalize="off">
   <div class="lab">權限</div><div class="seg" id="sf-role"></div>
   <button class="btn primary big" data-act="sSave">儲存</button>
   <button class="btn danger big" id="sf-del" data-act="sDel" style="margin-top:8px">刪除這位員工</button>
+</section>
+
+<!-- 改我的密碼 -->
+<div class="sheet-back" id="pw-back" data-act="closePw" hidden></div>
+<section class="sheet" id="pw-sheet" role="dialog" aria-label="改密碼" hidden>
+  <div class="shd"><h2>改我的密碼</h2><button class="sx" data-act="closePw" aria-label="關閉">×</button></div>
+  <div class="lab">現在的密碼</div><input id="pw-old" class="txt" type="password" autocomplete="current-password">
+  <div class="lab">新密碼</div><input id="pw-new" class="txt" type="password" autocomplete="new-password">
+  <button class="btn primary big" data-act="pwSave">儲存</button>
 </section>
 
 <div id="toast" role="status" hidden></div>
@@ -583,7 +592,7 @@ var clone=function(x){return JSON.parse(JSON.stringify(x));};
 
 var S={db:null,state:'connecting',menu:{items:[]},menuMap:{},menuLoaded:false,regs:[],settings:{},settingsLoaded:false,
   open:[],openLoaded:false,pend:[],days:{},notes:[],notesLoaded:false,board:{},boardLoaded:false,migrated:false,
-  view:'tables',staff:[],staffLoaded:false,me:(function(){try{return localStorage.getItem('pos.me')||null;}catch(x){return null;}})(),whoPick:null,esheet:null,ssheet:null,msheet:null,rsheet:null,svType:'drink',svBy:(function(){try{return localStorage.getItem('pos.svBy')||'seat';}catch(x){return 'seat';}})(),salesDay:bizDay(),setSec:null,
+  view:'tables',staff:[],staffLoaded:false,esheet:null,ssheet:null,msheet:null,rsheet:null,svType:'drink',svBy:(function(){try{return localStorage.getItem('pos.svBy')||'seat';}catch(x){return 'seat';}})(),salesDay:bizDay(),setSec:null,
   editor:null,co:null,tsheet:null,psheet:null,confirm:null,menuQ:''};
 var tablesList=function(){var t=S.settings&&S.settings.tables;return (t&&t.length)?t:DEFAULT_TABLES;};
 
@@ -672,12 +681,12 @@ function startDb(db){
   },function(e){console.error(e);});
   db.doc('staff/main').onSnapshot(function(s){
     var d=s.exists?s.data():null;S.staff=(d&&d.list)||[];S.staffLoaded=true;
-    renderWho();renderHeader();if(S.view==='settings')renderMain();
+    renderHeader();if(S.view==='settings')renderMain();if(S.view==='tables')renderMain();
   },function(e){console.error(e);});
   db.doc('settings/main').onSnapshot(function(s){
     S.settings=s.exists?(s.data()||{}):{};S.settingsLoaded=true;
     var t=S.settings.tables;
-    if(t&&t.join(',')===OLD_DEFAULT){S.settings={tables:DEFAULT_TABLES};w(function(){return db.doc('settings/main').set({tables:DEFAULT_TABLES,updatedAt:Date.now()});});}
+    if(t&&t.join(',')===OLD_DEFAULT){saveSettings({tables:DEFAULT_TABLES});}
     if(S.tsheet)renderT();
     renderMain();
   },function(e){console.error(e);});
@@ -731,33 +740,19 @@ function regChips(q,selId,act){
 function ridOf(o){return o.rid||(o.guests&&o.guests[0]&&o.guests[0].rid)||null;}
 
 /* ---------- 員工、打卡 ---------- */
-function meObj(){return S.me?S.staff.find(function(x){return x.id===S.me;})||null:null;}
+function authEmail(){return window.POSAUTH&&window.POSAUTH.email?window.POSAUTH.email():'';}
+function isMaster(){return !!(window.POSAUTH&&window.POSAUTH.isMaster&&window.POSAUTH.isMaster());}
+// 現在登入的人：員工名單裡 email 對得上的那位；店帳號就是「店長」
+function meObj(){
+  var e=authEmail();if(!e)return null;
+  var x=S.staff.find(function(y){return y.email===e;});
+  if(x)return x;
+  return isMaster()?{id:'master',name:'店長',role:'admin',master:true}:null;
+}
 function meName(){var m=meObj();return m?m.name:'';}
-function isAdmin(){var m=meObj();return !S.staff.some(function(x){return x.role==='admin';})||(m&&m.role==='admin');}
+function isAdmin(){var m=meObj();return !S.staff.length||!!(m&&m.role==='admin');}
 function todayRec(){ensureDay(bizDay());return S.days[bizDay()]||{shifts:[],expenses:[],orders:[]};}
-function myShift(){var m=meObj();if(!m)return null;return (todayRec().shifts||[]).find(function(x){return x.staffId===m.id&&!x.out;})||null;}
-function setMe(id){S.me=id;try{if(id)localStorage.setItem('pos.me',id);else localStorage.removeItem('pos.me');}catch(x){}renderWho();renderHeader();renderMain();}
-// 有員工名單的話，每支手機要先選「我是誰」
-function renderWho(){
-  var el=$('#who');
-  var need=S.staffLoaded&&S.staff.length>0&&!meObj();
-  el.hidden=!need;if(!need){S.whoPick=null;return;}
-  var pick=S.whoPick&&S.staff.find(function(x){return x.id===S.whoPick;});
-  if(!pick){
-    $('#who-in').innerHTML='<h1>你是誰？</h1><div class="whogrid">'+S.staff.map(function(x){return '<button data-act="whoPick" data-id="'+esc(x.id)+'">'+esc(x.name)+'</button>';}).join('')+'</div>';
-  }else{
-    $('#who-in').innerHTML='<h1>'+esc(pick.name)+'</h1><div class="pinrow"><input id="who-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="密碼"><button class="btn primary" data-act="whoOk">進入</button></div>'+
-      '<button class="link" data-act="whoBack" style="margin-top:10px">‹ 換人</button>';
-    setTimeout(function(){var i=$('#who-pin');if(i)i.focus();},50);
-  }
-}
-function whoOk(){
-  var pick=S.staff.find(function(x){return x.id===S.whoPick;});if(!pick)return;
-  var v=($('#who-pin')||{}).value||'';
-  if(String(pick.pin||'')!==v.trim()){toast('密碼不對');$('#who-pin').value='';$('#who-pin').focus();return;}
-  S.whoPick=null;setMe(pick.id);
-  if(!myShift())openMe();
-}
+function myShift(){var m=meObj();if(!m||m.master)return null;return (todayRec().shifts||[]).find(function(x){return x.staffId===m.id&&!x.out;})||null;}
 function clockIn(){
   var m=meObj();if(!m)return;
   var ref=S.db.collection('shifts').doc(),x={staffId:m.id,name:m.name,day:bizDay(),in:Date.now(),out:null};
@@ -775,14 +770,15 @@ function closeMe(){S.mesheet=false;$('#me-back').hidden=true;$('#me-sheet').hidd
 function renderMe(){
   var m=meObj();if(!m){closeMe();return;}
   var sh=myShift();
-  $('#me-title').textContent=m.name+(m.role==='admin'?' · 管理者':'');
-  $('#me-body').innerHTML=(sh?'<p>上班中，'+fmtTime(sh.in)+' 打卡</p><button class="btn big" data-act="clockOut">下班</button>':'<button class="btn primary big" data-act="clockIn">上班</button>')+
-    '<button class="btn big" data-act="whoSwitch" style="margin-top:8px">換人</button>';
+  $('#me-title').textContent=m.name+(m.role==='admin'&&!m.master?' · 管理者':'');
+  $('#me-body').innerHTML=(m.master?'':(sh?'<p>上班中，'+fmtTime(sh.in)+' 打卡</p><button class="btn big" data-act="clockOut">下班</button>':'<button class="btn primary big" data-act="clockIn">上班</button>'))+
+    (m.master?'':'<button class="btn big" data-act="pwOpen" style="margin-top:8px">改我的密碼</button>')+
+    '<button class="btn big" data-act="logout" style="margin-top:8px">登出 / 換人</button>';
 }
 function fmtDur(a,b){var m=Math.max(0,Math.round(((b||Date.now())-a)/60000));return Math.floor(m/60)+' 時 '+(m%60)+' 分';}
 
 /* ---------- 支出 ---------- */
-var EXP_KINDS=[['wage','日薪'],['buy','採購'],['other','其他']];
+var EXP_KINDS=[['wage','薪水'],['buy','採購'],['other','其他']];
 function openE(id,day){
   var rec=S.days[day||S.salesDay]||{expenses:[]},e=id?(rec.expenses||[]).find(function(x){return x.id===id;}):null;
   S.esheet={id:id||null,day:e?e.day:(day||S.salesDay),kind:e?e.kind:'buy',src:e?e.src:'cash',staffId:e?e.staffId||null:null};
@@ -829,9 +825,10 @@ function delE(){
 }
 
 /* ---------- 員工管理 ---------- */
+// staff/main 是名單；members/{email} 讓資料庫規則知道誰能進；public/logins 把帳號名字對到登入 email
 function staffView(){
   var h=subhead('員工')+'<div class="toolrow"><span style="flex:1"></span><button class="btn primary" data-act="sNew">＋ 新增</button></div>';
-  if(!S.staff.length)return h+'<div class="empty"><h2>還沒有員工</h2><p>第一個新增的人是管理者。</p></div>';
+  if(!S.staff.length)return h+'<div class="empty"><h2>還沒有員工</h2></div>';
   return h+'<div class="glist">'+S.staff.map(function(x){
     return '<button class="mi" data-act="sEdit" data-id="'+esc(x.id)+'"><span class="nm">'+esc(x.name)+(x.role==='admin'?'<small>管理者</small>':'')+'</span><span class="chev muted">›</span></button>';
   }).join('')+'</div>';
@@ -840,33 +837,62 @@ function openS(id){
   var x=id?S.staff.find(function(y){return y.id===id;}):null;
   S.ssheet={id:id||null,role:x?x.role||'staff':(S.staff.length?'staff':'admin')};
   $('#s-title').textContent=x?'編輯員工':'新增員工';
-  $('#sf-name').value=x?x.name:'';$('#sf-pin').value=x?(x.pin||''):'';
+  $('#sf-name').value=x?x.name:'';$('#sf-pin').value='';
+  $('#sf-pinlab').textContent=x?'重設密碼（不改就留空）':'密碼（至少 6 碼）';
   $('#sf-del').hidden=!x;$('#sf-del').textContent='刪除這位員工';
   $('#s-back').hidden=false;$('#s-sheet').hidden=false;renderS();
 }
 function renderS(){var X=S.ssheet;if(!X)return;$('#sf-role').innerHTML='<button class="'+(X.role!=='admin'?'on':'')+'" data-act="sfRole" data-v="staff">一般</button><button class="'+(X.role==='admin'?'on':'')+'" data-act="sfRole" data-v="admin">管理者</button>';}
 function closeS(){S.ssheet=null;S.confirm=null;$('#s-back').hidden=true;$('#s-sheet').hidden=true;}
-function saveStaff(list){S.staff=list;renderMain();renderHeader();w(function(){return S.db.doc('staff/main').set({list:list,updatedAt:Date.now()});});}
+function staffWrites(list,oldEmail,newEntry){
+  // 名單、登入對照、權限一起寫
+  var map={};list.forEach(function(y){if(y.email)map[norm(y.name)]=y.email;});
+  var ops=[S.db.doc('staff/main').set({list:list,updatedAt:Date.now()}),S.db.doc('public/logins').set({map:map,updatedAt:Date.now()})];
+  if(oldEmail&&(!newEntry||newEntry.email!==oldEmail))ops.push(S.db.doc('members/'+oldEmail).delete());
+  if(newEntry&&newEntry.email)ops.push(S.db.doc('members/'+newEntry.email).set({name:newEntry.name,role:newEntry.role||'staff'}));
+  return Promise.all(ops);
+}
 function saveS(){
   var X=S.ssheet;if(!X)return;
-  var name=$('#sf-name').value.trim(),pin=$('#sf-pin').value.trim();
-  if(!name){toast('請輸入名字');return;}
-  if(!/^\d{4,8}$/.test(pin)){toast('密碼請用 4～8 位數字');return;}
-  if(S.staff.some(function(y){return y.id!==X.id&&norm(y.name)===norm(name);})){toast('已經有這個名字了');return;}
-  var list=clone(S.staff),first=!list.length;
-  if(X.id){var y=list.find(function(z){return z.id===X.id;});if(y){y.name=name;y.pin=pin;y.role=X.role;}}
-  else list.push({id:uid(),name:name,pin:pin,role:first?'admin':X.role});
-  if(!list.some(function(z){return z.role==='admin';})){toast('至少要有一位管理者');return;}
-  var newId=!X.id?list[list.length-1].id:null;
-  closeS();saveStaff(list);toast('已儲存');
-  if(first&&newId)setMe(newId);
+  var name=$('#sf-name').value.trim(),pw=$('#sf-pin').value;
+  if(!name){toast('請輸入帳號');return;}
+  if(/[@\s]/.test(name)){toast('帳號不能有空白或 @');return;}
+  if(S.staff.some(function(y){return y.id!==X.id&&norm(y.name)===norm(name);})){toast('已經有這個帳號了');return;}
+  if(!X.id&&pw.length<6){toast('密碼至少 6 碼');return;}
+  if(X.id&&pw&&pw.length<6){toast('密碼至少 6 碼');return;}
+  var list=clone(S.staff),cur=X.id?list.find(function(z){return z.id===X.id;}):null;
+  var role=(!X.id&&!list.length)?'admin':X.role;
+  var test=list.filter(function(z){return z.id!==X.id;}).concat([{role:role}]);
+  if(!test.some(function(z){return z.role==='admin';})){toast('至少要有一位管理者');return;}
+  var btn=$('[data-act="sSave"]');btn.disabled=true;btn.textContent='儲存中…';
+  var done=function(){btn.disabled=false;btn.textContent='儲存';};
+  var oldEmail=cur?cur.email:null;
+  var make=(!X.id||pw)?window.POSAUTH.createAccount(pw):Promise.resolve(oldEmail);
+  make.then(function(email){
+    var entry;
+    if(cur){cur.name=name;cur.role=role;cur.email=email;entry=cur;}
+    else{entry={id:uid(),name:name,role:role,email:email};list.push(entry);}
+    S.staff=list;closeS();done();renderMain();renderHeader();
+    toast(X.id?(pw?'已儲存，新密碼生效':'已儲存'):'已新增 '+name+'，用這組帳號密碼登入');
+    return w(function(){return staffWrites(list,oldEmail,entry);});
+  }).catch(function(e){done();console.error(e);toast('沒有成功（'+((e&&e.code)||'錯誤')+'）');});
 }
 function delS(){
   var X=S.ssheet;if(!X||!X.id)return;
   if(S.confirm!=='sdel'){arm('sdel',4000);$('#sf-del').textContent='再按一次刪除';return;}
+  var gone=S.staff.find(function(y){return y.id===X.id;});
   var list=S.staff.filter(function(y){return y.id!==X.id;});
   if(list.length&&!list.some(function(z){return z.role==='admin';})){toast('至少要留一位管理者');return;}
-  var wasMe=X.id===S.me;closeS();saveStaff(list);toast('已刪除');if(wasMe)setMe(null);
+  closeS();S.staff=list;renderMain();toast('已刪除，'+(gone?gone.name:'')+' 不能再登入');
+  w(function(){return staffWrites(list,gone&&gone.email,null);});
+}
+function openPw(){closeMe();$('#pw-old').value='';$('#pw-new').value='';$('#pw-back').hidden=false;$('#pw-sheet').hidden=false;setTimeout(function(){$('#pw-old').focus();},50);}
+function closePw(){$('#pw-back').hidden=true;$('#pw-sheet').hidden=true;}
+function savePw(){
+  var o=$('#pw-old').value,n=$('#pw-new').value;
+  if(n.length<6){toast('新密碼至少 6 碼');return;}
+  window.POSAUTH.changeMyPassword(o,n).then(function(){closePw();toast('密碼已更新');})
+    .catch(function(e){var c=(e&&e.code)||'';toast(/credential|wrong/.test(c)?'現在的密碼不對':'沒有成功（'+c+'）');});
 }
 
 /* ---------- 畫面 ---------- */
@@ -878,7 +904,7 @@ function renderHeader(){
   $('#btn-new').hidden=S.view!=='tables';
   var me=meObj(),mb=$('#me-btn');
   mb.hidden=!me;
-  if(me){var on=!!myShift();mb.className='mebtn'+(on?' on':'');mb.innerHTML='<span class="dot"></span>'+esc(me.name);}
+  if(me){var on=!!myShift();mb.className='mebtn'+(on?' on':'');mb.innerHTML=(me.master?'':'<span class="dot"></span>')+esc(me.name);}
 }
 function servingTotals(){
   var seen={},d=0,f=0;
@@ -919,7 +945,7 @@ function tablesView(){
   if(!S.openLoaded&&S.state==='ready')return '<div class="empty muted">讀取中…</div>';
   var list=tablesList(),known={};list.forEach(function(t){known[norm(t)]=1;});
   var h='';
-  if(meObj()&&!myShift())h+='<div class="clockbar"><span>'+esc(meName())+'，還沒打上班卡</span><button class="btn small primary" data-act="clockIn">上班</button></div>';
+  if(meObj()&&!meObj().master&&!myShift())h+='<div class="clockbar"><span>'+esc(meName())+'，還沒打上班卡</span><button class="btn small primary" data-act="clockIn">上班</button></div>';
   groupTables(list).forEach(function(g){
     h+='<div class="sec"><h2>'+esc(g.name)+'</h2></div><div class="tgrid">'+g.tables.map(function(t){
       var os=tableOrders(t);
@@ -1161,7 +1187,9 @@ function salesView(){
   var cashOut=exps.filter(function(e){return e.src==='cash';}).reduce(function(s2,e){return s2+e.amount;},0);
   var head='<div class="card"><div class="muted">營業額</div><div class="big-total num">'+money(st.total)+'</div>'+
     (st.tips?'<div class="ok">另收小費 '+money(st.tips)+'</div>':'')+
-    '<div class="netgrid"><div><small>支出</small><b class="num">'+money(expTotal)+'</b></div><div><small>扣掉支出</small><b class="num">'+money(st.total-expTotal)+'</b></div><div><small>櫃台現金應有</small><b class="num">'+money(cashIn+cashTips-cashOut)+'</b></div></div>'+
+    '<div class="netgrid"><div><small>支出</small><b class="num">'+money(expTotal)+'</b></div><div><small>扣掉支出</small><b class="num">'+money(st.total-expTotal)+'</b></div><div><small>櫃台現金應有</small><b class="num">'+money(floatAmt()+cashIn+cashTips-cashOut)+'</b></div></div>'+
+    (S.floatEdit?'<div class="cb-row" style="margin-top:8px"><label for="float-in">開店零用金</label><input id="float-in" type="number" inputmode="numeric" value="'+floatAmt()+'"><button class="btn small primary" data-act="floatSave">儲存</button></div>'
+      :'<button class="link" data-act="floatEdit" style="padding-left:0">開店零用金 '+money(floatAmt())+' ›</button>')+
     '<div class="muted" style="margin-top:6px">早上 6 點換日</div></div>'+
     '<div class="kpi"><div><small>結帳單數</small><b class="num">'+st.count+'</b></div><div><small>平均每單</small><b class="num">'+money(st.avg)+'</b></div><div><small>賣出品項</small><b class="num">'+st.units+'</b></div></div>';
   var ms=Object.keys(st.byMethod).sort(function(a,b){return st.byMethod[b]-st.byMethod[a];});
@@ -1178,7 +1206,7 @@ function salesView(){
       '<span class="w"><b>'+esc(labelOf(x.o))+'</b> <span class="muted">'+esc(x.p.method)+(x.p.by?' · '+esc(x.p.by):'')+'</span><small>'+esc(names)+'</small></span>'+
       '<b class="num">'+money(x.p.amount)+(x.p.tip?'<small class="ok" style="display:block;font-size:12px;text-align:right">＋'+money(x.p.tip)+'</small>':'')+'</b></button>';
   }).join('')+'</div>':'<p class="muted">這天還沒有收款。</p>');
-  var KN={wage:'日薪',buy:'採購',other:'其他'};
+  var KN={wage:'薪水',buy:'採購',other:'其他'};
   var exp='<div class="sec"><h2>支出</h2><button class="btn small primary" data-act="eNew">＋ 支出</button></div>'+(exps.length?'<div class="card" style="padding:0">'+exps.map(function(e){
     return '<button class="exprow" data-act="eEdit" data-id="'+esc(e.id)+'"><span class="w"><b>'+esc(KN[e.kind]||'其他')+'</b> '+esc(e.note||'')+'<small>'+(e.at?fmtTime(e.at):'')+(e.by?' · '+esc(e.by):'')+(e.src==='cash'?' · 櫃台現金':'')+'</small></span><b class="num">'+money(e.amount)+'</b></button>';
   }).join('')+'</div>':'<p class="muted">這天還沒有支出。</p>');
@@ -1193,6 +1221,11 @@ function salesView(){
 function menuItems(){return S.menu.items||[];}
 function menuCats(){var c=[];menuItems().forEach(function(m){if(m.cat&&c.indexOf(m.cat)<0)c.push(m.cat);});return c;}
 function subhead(title){return '<div class="subhead"><button class="link" data-act="setSec" data-v="">‹ 設定</button><h2>'+esc(title)+'</h2></div>';}
+function floatAmt(){return Number(S.settings&&S.settings.float)||0;}
+function saveSettings(patch){
+  var d={tables:tablesList(),float:floatAmt(),updatedAt:Date.now()};Object.keys(patch).forEach(function(k){d[k]=patch[k];});
+  S.settings=d;w(function(){return S.db.doc('settings/main').set(d);});
+}
 function settingsView(){
   if(S.setSec==='menu')return menuSetView();
   if(S.setSec==='regs')return regsView();
@@ -1890,14 +1923,13 @@ document.addEventListener('click',function(e){
     case 'setSec':S.setSec=v||null;S.menuQ='';renderMain();window.scrollTo(0,0);break;
     case 'logout':if(window.POSAUTH)window.POSAUTH.logout();break;
     case 'mNew':openM(null);break;
-    case 'whoPick':S.whoPick=id;renderWho();break;
-    case 'whoBack':S.whoPick=null;renderWho();break;
-    case 'whoOk':whoOk();break;
+    case 'pwOpen':openPw();break;
+    case 'closePw':closePw();break;
+    case 'pwSave':savePw();break;
     case 'meOpen':openMe();break;
     case 'closeMe':closeMe();break;
     case 'clockIn':clockIn();break;
     case 'clockOut':clockOut();break;
-    case 'whoSwitch':closeMe();setMe(null);break;
     case 'eNew':openE(null,S.salesDay);break;
     case 'eEdit':openE(id,S.salesDay);break;
     case 'closeE':closeE();break;
@@ -1933,9 +1965,10 @@ document.addEventListener('click',function(e){
       var arr=$('#tb-input').value.split(/[,，、\n]+/).map(function(x){return x.trim();}).filter(Boolean);
       var seen={},u=[];arr.forEach(function(x){if(!seen[norm(x)]){seen[norm(x)]=1;u.push(x);}});
       if(!u.length){toast('至少要有一個桌位');break;}
-      S.settings={tables:u};renderMain();toast('桌位已儲存');
-      w(function(){return S.db.doc('settings/main').set({tables:u,updatedAt:Date.now()});});break;}
-    case 'tablesReset':S.settings={tables:DEFAULT_TABLES};renderMain();w(function(){return S.db.doc('settings/main').set({tables:DEFAULT_TABLES,updatedAt:Date.now()});});break;
+      saveSettings({tables:u});renderMain();toast('桌位已儲存');break;}
+    case 'tablesReset':saveSettings({tables:DEFAULT_TABLES});renderMain();break;
+    case 'floatEdit':S.floatEdit=true;renderMain();setTimeout(function(){var f=$('#float-in');if(f){f.focus();f.select();}},30);break;
+    case 'floatSave':{var fv=Math.max(0,Math.round(Number(($('#float-in')||{}).value)||0));S.floatEdit=false;saveSettings({float:fv});renderMain();toast('開店零用金 '+money(fv));break;}
   }
 });
 document.addEventListener('mousedown',function(e){if(e.target.closest&&e.target.closest('.btool button,.bl .cir'))e.preventDefault();});
@@ -1965,7 +1998,8 @@ document.addEventListener('keydown',function(e){
   if(id==='p-name')personOk();
   else if(id==='t-name')renameTo();
   else if(id==='mf-price'||id==='mf-name'){saveM();}
-  else if(id==='who-pin'){whoOk();}
+  else if(id==='pw-new'){savePw();}
+  else if(id==='float-in'){document.querySelector('[data-act="floatSave"]').click();}
   else if(id==='ef-amt'||id==='ef-note'){saveE();}
   else if(id==='rf-name'||id==='rf-note'){saveR();}
   else if(id==='ed-ask-price')document.querySelector('[data-act="askOk"]').click();

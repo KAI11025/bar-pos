@@ -1,9 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 店帳號（pos）或是在員工名單裡的人才能讀寫
+    function isMember() {
+      return request.auth != null && (
+        request.auth.token.email == 'pos@jcorner.app' ||
+        exists(/databases/$(database)/documents/members/$(request.auth.token.email)));
+    }
+    // 登入前要查「帳號名字 → 登入 email」，這份可以公開讀
+    match /public/{docId} {
+      allow read: if true;
+      allow write: if isMember();
+    }
     match /{document=**} {
-      allow read, write: if request.auth != null
-        && request.auth.token.email == 'pos@jcorner.app';
+      allow read, write: if isMember();
     }
   }
 }
