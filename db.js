@@ -93,7 +93,7 @@ onAuthStateChanged(auth, (user) => {
   } else {
     if (started) { location.reload(); return; }
     $('login').hidden = false;
-    setTimeout(() => $('login-name').focus(), 50);
+    setTimeout(() => $('login-pass').focus(), 50);
   }
 });
 
@@ -101,11 +101,11 @@ $('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const err = $('login-err'); err.hidden = true;
   try {
-    const email = await emailFor($('login-name').value);
+    const email = await emailFor($('login-name').value || 'pos');
     await signInWithEmailAndPassword(auth, email, $('login-pass').value);
   } catch (x) {
     const c = (x && x.code) || '';
-    err.textContent = /invalid-credential|wrong-password|user-not-found|invalid-email/.test(c) ? '帳號或密碼不對'
+    err.textContent = /invalid-credential|wrong-password|user-not-found|invalid-email/.test(c) ? '密碼不對'
       : /network/.test(c) ? '連不到網路' : /too-many/.test(c) ? '試太多次了，等一下再試' : '登入失敗（' + c + '）';
     err.hidden = false;
   }
