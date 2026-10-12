@@ -180,7 +180,6 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 .svh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 14px 6px}
 .svh h3{margin:0;font:700 19px/1.2 var(--serif)}
 .wait{font-size:13px;color:var(--ink-2)}
-.wait.late{color:var(--warn);font-weight:700}
 .svnote{padding:0 14px 6px;font-size:14px;color:var(--warn)}
 .svl{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:12px 14px;min-height:54px;font-size:17px}
 .svl .q{font-weight:700;min-width:36px}
@@ -346,7 +345,7 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
   <h2 id="t-title">換桌</h2>
   <div id="t-grid"></div>
   <div class="inline" id="t-hint" hidden></div>
-  <div class="lab">或改成人名（熟客走來走去、外帶）</div>
+  <div class="lab">或改成人名（熟客走來走去）</div>
   <input id="t-name" class="txt" placeholder="名字" aria-label="名字" autocomplete="off">
   <div class="chips" id="t-regs"></div>
   <button class="btn primary big" data-act="tNameOk">改成這個名字</button>
@@ -356,8 +355,8 @@ nav.tabs .n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;
 <div class="sheet-back" id="p-back" data-act="closeP" hidden></div>
 <section class="sheet" id="p-sheet" role="dialog" aria-label="開人名單" hidden>
   <h2>開人名單</h2>
-  <p class="muted" style="margin:0 0 8px">熟客走來走去、外帶，不用選桌，單掛在名字上。熟客打一兩個字就會跳出來。</p>
-  <input id="p-name" class="txt" placeholder="名字，例如 阿明、外帶1" aria-label="名字" autocomplete="off">
+  <p class="muted" style="margin:0 0 8px">熟客走來走去不用選桌，單掛在名字上。打一兩個字熟客就會跳出來。</p>
+  <input id="p-name" class="txt" placeholder="名字，例如 阿明" aria-label="名字" autocomplete="off">
   <div class="chips" id="p-regs"></div>
   <div id="p-save-row" hidden><button class="chip mini" id="p-save" data-act="pSave">存成熟客</button></div>
   <button class="btn primary big" data-act="pOk" style="margin-top:8px">開始點餐</button>
@@ -425,12 +424,10 @@ var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){r
 var uid=function(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);};
 var fmtTime=function(ts){var d=new Date(ts);return pad2(d.getHours())+':'+pad2(d.getMinutes());};
 var clone=function(x){return JSON.parse(JSON.stringify(x));};
-var mins=function(ts){return Math.max(0,Math.round((Date.now()-(ts||Date.now()))/60000));};
-var fmtMins=function(m){return m<60?m+' 分':Math.floor(m/60)+' 時 '+(m%60)+' 分';};
 
 var S={db:null,state:'connecting',menu:{items:[]},menuMap:{},menuLoaded:false,regs:[],settings:{},settingsLoaded:false,
   open:[],openLoaded:false,pend:[],days:{},notes:[],notesLoaded:false,
-  view:'tables',svType:'drink',salesDay:bizDay(),setSec:'menu',
+  view:'tables',svType:'drink',svBy:(function(){try{return localStorage.getItem('pos.svBy')||'seat';}catch(x){return 'seat';}})(),salesDay:bizDay(),setSec:'menu',
   editor:null,co:null,tsheet:null,psheet:null,confirm:null,menuQ:''};
 var tablesList=function(){var t=S.settings&&S.settings.tables;return (t&&t.length)?t:DEFAULT_TABLES;};
 
@@ -587,8 +584,7 @@ function tableOrders(t){return S.open.filter(function(o){return kindOf(o)==='tab
 function tileBody(orders){
   var due=orders.reduce(function(s,o){return s+orderTotal(o)-paidAmount(o);},0);
   var pq=orders.reduce(function(s,o){return s+pendingQty(o);},0);
-  var since=Math.min.apply(null,orders.map(function(o){return o.createdAt||Date.now();}));
-  return '<span class="amt num">'+money(due)+'</span><small class="num">'+fmtMins(mins(since))+'</small>'+(pq?'<span class="pend num">待出 '+pq+'</span>':'');
+  return '<span class="amt num">'+money(due)+'</span>'+(pq?'<span class="pend num">待出 '+pq+'</span>':'');
 }
 function tablesView(){
   if(!S.openLoaded&&S.state==='ready')return '<div class="empty muted">讀取中…</div>';
@@ -603,9 +599,9 @@ function tablesView(){
   });
   // 人名單，加上桌位清單外的舊單
   var others=S.open.filter(function(o){return kindOf(o)==='person'||!known[norm(tableOf(o))];}).sort(function(a,b){return (a.createdAt||0)-(b.createdAt||0);});
-  h+='<div class="sec"><h2>人名單 · 外帶</h2></div><div class="tgrid">'+others.map(function(o){
+  h+='<div class="sec"><h2>人名單（熟客）</h2></div><div class="tgrid">'+others.map(function(o){
     return '<button class="tt busy" data-act="orderOpen" data-id="'+esc(o.id)+'"><b>'+esc(labelOf(o))+'</b>'+tileBody([o])+'</button>';
-  }).join('')+'<button class="tt add" data-act="personNew"><b style="color:inherit">＋</b><small>熟客 / 外帶</small></button></div>';
+  }).join('')+'<button class="tt add" data-act="personNew"><b style="color:inherit">＋</b><small>熟客</small></button></div>';
   h+='<div class="legend"><span><i></i>空桌，點了直接點餐</span><span><i class="b"></i>有人，點了打開那張單</span></div>';
   // 今日已結帳
   var today=bizDay(),rec=S.days[today]||{orders:[]};
@@ -619,54 +615,86 @@ function tablesView(){
   return h;
 }
 
-/* ----- 出餐 ----- */
-function serveCard(o,type){
-  var lines=(o.items||[]).filter(function(l){return !noServe(l)&&lineType(l)===type;});
-  var pend=lines.filter(function(l){return Math.min(l.qty,l.sv||0)<l.qty;});
-  var oldest=pend.length?Math.min.apply(null,pend.map(function(l){return l.at||o.createdAt||Date.now();})):0;
-  var m=oldest?mins(oldest):0;
-  var rows=lines.slice().sort(function(a,b){
-    var da=Math.min(a.qty,a.sv||0)>=a.qty?1:0,db=Math.min(b.qty,b.sv||0)>=b.qty?1:0;return da-db;
-  }).map(function(l){
-    var sv=Math.min(l.qty,l.sv||0),done=sv>=l.qty;
-    return '<button class="svl'+(done?' done':'')+'" data-act="svLine" data-oid="'+esc(o.id)+'" data-id="'+esc(l.id)+'">'+
-      '<span class="q num">×'+l.qty+'</span><span class="nm">'+esc(l.name)+(sv&&!done?' <small class="muted">（已出 '+sv+'）</small>':'')+'</span>'+
-      '<span class="go">'+(done?'↩ 還原':'出了 ✓')+'</span></button>';
-  }).join('');
-  return '<section class="sv'+(pend.length?'':' alldone')+'"><div class="svh"><h3>'+esc(labelOf(o))+'</h3>'+
-    (pend.length?'<span class="wait num'+(m>=15?' late':'')+'">等 '+fmtMins(m)+'</span>':'<span class="wait">都出了</span>')+'</div>'+
-    (o.note?'<div class="svnote">備註：'+esc(o.note)+'</div>':'')+rows+
-    (pend.length>1?'<div class="svfoot"><button class="btn small" data-act="svAll" data-oid="'+esc(o.id)+'">這桌'+(type==='food'?'餐點':'飲品')+'全部出了</button></div>':'')+'</section>';
-}
-function serveView(){
-  var st=servingTotals(),type=S.svType;
-  var h='<div class="seg"><button class="'+(type==='drink'?'on':'')+'" data-act="svSeg" data-v="drink">飲品'+(st.drink?'（'+st.drink+'）':'')+'</button>'+
-    '<button class="'+(type==='food'?'on':'')+'" data-act="svSeg" data-v="food">食物'+(st.food?'（'+st.food+'）':'')+'</button></div>';
-  if(!S.openLoaded&&S.state==='ready')return h+'<div class="empty muted">讀取中…</div>';
+/* ----- 出餐：按座位 / 按品項 ----- */
+var lineDone=function(l){return Math.min(l.qty,l.sv||0)>=l.qty;};
+function serveOrders(type){
   var seen={},list=[];
   S.open.concat(S.pend).forEach(function(o){if(seen[o.id])return;seen[o.id]=1;
     if((o.items||[]).some(function(l){return !noServe(l)&&lineType(l)===type;}))list.push(o);});
-  list.sort(function(a,b){
-    var pa=pendingOfType(a,type)>0?0:1,pb=pendingOfType(b,type)>0?0:1;
-    if(pa!==pb)return pa-pb;return (a.createdAt||0)-(b.createdAt||0);
+  return list.sort(function(a,b){return (a.createdAt||0)-(b.createdAt||0);});
+}
+function svRow(o,l,label){
+  var sv=Math.min(l.qty,l.sv||0),done=sv>=l.qty;
+  return '<button class="svl'+(done?' done':'')+'" data-act="svLine" data-oid="'+esc(o.id)+'" data-id="'+esc(l.id)+'">'+
+    '<span class="q num">×'+l.qty+'</span><span class="nm">'+label+(sv&&!done?' <small class="muted">（已出 '+sv+'）</small>':'')+'</span>'+
+    '<span class="go">'+(done?'↩ 還原':'出了 ✓')+'</span></button>';
+}
+function serveCard(o,type){
+  var lines=(o.items||[]).filter(function(l){return !noServe(l)&&lineType(l)===type;});
+  var pend=lines.filter(function(l){return !lineDone(l);});
+  var rows=lines.slice().sort(function(a,b){return (lineDone(a)?1:0)-(lineDone(b)?1:0);}).map(function(l){return svRow(o,l,esc(l.name));}).join('');
+  return '<section class="sv'+(pend.length?'':' alldone')+'"><div class="svh"><h3>'+esc(labelOf(o))+'</h3>'+
+    (pend.length?'':'<span class="wait">都出了</span>')+'</div>'+
+    (o.note?'<div class="svnote">備註：'+esc(o.note)+'</div>':'')+rows+
+    (pend.length>1?'<div class="svfoot"><button class="btn small" data-act="svAll" data-oid="'+esc(o.id)+'">這桌'+(type==='food'?'餐點':'飲品')+'全部出了</button></div>':'')+'</section>';
+}
+// 同一個品項跨桌合在一起：A1、C1 都點長島，就一起調
+function itemGroups(type){
+  var g={},order=[];
+  serveOrders(type).forEach(function(o){
+    (o.items||[]).forEach(function(l){
+      if(noServe(l)||lineType(l)!==type)return;
+      var k=l.menuId||('n:'+l.name);
+      if(!g[k]){g[k]={key:k,name:l.name,entries:[],first:Infinity};order.push(k);}
+      g[k].entries.push({o:o,l:l});
+      if(!lineDone(l))g[k].first=Math.min(g[k].first,l.at||o.createdAt||0);
+    });
   });
-  if(!list.length)return h+'<div class="empty"><h2>現在沒有'+(type==='food'?'餐點':'飲品')+'要出</h2><p>點單後會排在這裡，出了就點一下劃掉。</p></div>';
+  return order.map(function(k){var x=g[k];x.left=x.entries.reduce(function(s,e){return s+e.l.qty-Math.min(e.l.qty,e.l.sv||0);},0);return x;})
+    .sort(function(a,b){return (a.left?0:1)-(b.left?0:1)||a.first-b.first;});
+}
+function itemCard(g,type){
+  var unit=type==='food'?'份':'杯';
+  var pendN=g.entries.filter(function(e){return !lineDone(e.l);}).length;
+  var rows=g.entries.slice().sort(function(a,b){return (lineDone(a.l)?1:0)-(lineDone(b.l)?1:0);}).map(function(e){
+    return svRow(e.o,e.l,'<b>'+esc(labelOf(e.o))+'</b>'+(e.o.note?' <small class="muted">'+esc(e.o.note)+'</small>':''));
+  }).join('');
+  return '<section class="sv'+(g.left?'':' alldone')+'"><div class="svh"><h3>'+esc(g.name)+'</h3>'+
+    '<span class="wait num">'+(g.left?'還要 '+g.left+' '+unit:'都出了')+'</span></div>'+rows+
+    (pendN>1?'<div class="svfoot"><button class="btn small primary" data-act="svItem" data-k="'+esc(g.key)+'">一起出了（'+g.left+' '+unit+'）</button></div>':'')+'</section>';
+}
+function serveView(){
+  var st=servingTotals(),type=S.svType,by=S.svBy;
+  var h='<div class="seg"><button class="'+(type==='drink'?'on':'')+'" data-act="svSeg" data-v="drink">飲品'+(st.drink?'（'+st.drink+'）':'')+'</button>'+
+    '<button class="'+(type==='food'?'on':'')+'" data-act="svSeg" data-v="food">食物'+(st.food?'（'+st.food+'）':'')+'</button></div>'+
+    '<div class="chips" style="margin-top:-4px"><button class="chip mini'+(by==='seat'?' on':'')+'" data-act="svBy" data-v="seat">按座位</button><button class="chip mini'+(by==='item'?' on':'')+'" data-act="svBy" data-v="item">按品項（同樣的一起做）</button></div>';
+  if(!S.openLoaded&&S.state==='ready')return h+'<div class="empty muted">讀取中…</div>';
+  var what=type==='food'?'餐點':'飲品';
+  if(by==='item'){
+    var gs=itemGroups(type);
+    if(!gs.length)return h+'<div class="empty"><h2>現在沒有'+what+'要出</h2></div>';
+    return h+'<p class="muted" style="margin:0 0 10px">同一個品項的各桌排在一起，可以一次做。出了點那一桌劃掉，或按「一起出了」。</p>'+gs.map(function(g){return itemCard(g,type);}).join('');
+  }
+  var list=serveOrders(type).sort(function(a,b){return (pendingOfType(a,type)>0?0:1)-(pendingOfType(b,type)>0?0:1);});
+  if(!list.length)return h+'<div class="empty"><h2>現在沒有'+what+'要出</h2><p>點單後會排在這裡，出了就點一下劃掉。</p></div>';
   return h+'<p class="muted" style="margin:0 0 10px">先點的排上面。出了就點那一行劃掉，按錯再點一次還原。劃掉的會留著，直到那桌結帳。</p>'+list.map(function(o){return serveCard(o,type);}).join('');
 }
-function markServed(orderId,lineId,mode,type){
-  var o=findOrder(orderId);if(!o)return;
-  var items=clone(o.items||[]),changed=null;
+// changes: { orderId: 'toggle:<lineId>' | ['lineId',...] (全部標成已出) | '*'(這個類別全部) }
+function markServed(orderId,spec,type){
+  var o=findOrder(orderId);if(!o)return null;
+  var items=clone(o.items||[]),undone=null;
   items.forEach(function(l){
-    if(lineId==='*'){if(!noServe(l)&&lineType(l)===type)l.sv=l.qty;}
-    else if(l.id===lineId){l.sv=(Math.min(l.qty,l.sv||0)>=l.qty)?0:l.qty;changed=l;}
+    if(spec==='*'){if(!noServe(l)&&lineType(l)===type)l.sv=l.qty;}
+    else if(Array.isArray(spec)){if(spec.indexOf(l.id)>=0)l.sv=l.qty;}
+    else if(l.id===spec){if(lineDone(l)){l.sv=0;undone=l;}else l.sv=l.qty;}
   });
   var serving=pendingQty({items:items})>0;
   eachCopy(orderId,function(x){x.items=clone(items);x.serving=serving;});
   var c=clone(o);c.items=items;c.serving=serving;syncLocal(c);
-  renderTabs();renderMain();syncEditor();
-  if(changed&&!changed.sv)toast('已還原：'+changed.name);
   w(function(){return S.db.doc('orders/'+orderId).update({items:items,serving:serving});});
+  return undone;
 }
+function afterServe(msg){renderTabs();renderMain();syncEditor();if(msg)toast(msg);}
 
 /* ----- 備忘 ----- */
 function notesView(){
@@ -972,7 +1000,7 @@ function personOk(){
   var P=S.psheet;if(!P)return;
   var name=P.name.trim();if(!name){toast('請打名字');$('#p-name').focus();return;}
   var rid=P.rid;
-  if(!rid){var ex=S.regs.find(function(r){return norm(r.name)===norm(name);});if(ex)rid=ex.id;else if(P.save&&!/^外帶/.test(name))rid=addRegular(name);}
+  if(!rid){var ex=S.regs.find(function(r){return norm(r.name)===norm(name);});if(ex)rid=ex.id;else if(P.save)rid=addRegular(name);}
   if(rid)touchReg(rid);
   closeP();
   var match=S.open.find(function(o){return kindOf(o)==='person'&&norm(tableOf(o))===norm(name);});
@@ -1244,8 +1272,14 @@ document.addEventListener('click',function(e){
     case 'coPay':coPay();break;
     case 'coUndo':coUndo(Number(v));break;
     case 'svSeg':S.svType=v;renderMain();break;
-    case 'svLine':markServed(t.dataset.oid,id,'toggle',S.svType);break;
-    case 'svAll':markServed(t.dataset.oid,'*','all',S.svType);break;
+    case 'svLine':{var u=markServed(t.dataset.oid,id,S.svType);afterServe(u?'已還原：'+u.name:'');break;}
+    case 'svAll':markServed(t.dataset.oid,'*',S.svType);afterServe();break;
+    case 'svBy':S.svBy=v;try{localStorage.setItem('pos.svBy',v);}catch(x){}renderMain();break;
+    case 'svItem':{
+      var key=t.dataset.k,grp=itemGroups(S.svType).find(function(x){return x.key===key;});if(!grp)break;
+      var per={};grp.entries.forEach(function(e2){if(!lineDone(e2.l))(per[e2.o.id]=per[e2.o.id]||[]).push(e2.l.id);});
+      Object.keys(per).forEach(function(oid){markServed(oid,per[oid],S.svType);});
+      afterServe(grp.name+' 都出了 ✓');break;}
     case 'noteAdd':addNote();break;
     case 'noteToggle':{
       var n=S.notes.find(function(x){return x.id===id;});if(!n)break;
