@@ -18,4 +18,8 @@
 - `settings/main`：桌位 `{tables:[...]}`
 - `orders/*`：訂單 `{kind:'table'|'person', table, rid, note, items:[{id,menuId,name,price,qty,sv,t,at}], payments:[{at,method,amount,lines,tendered}], payDays, status, serving, createdAt, closedAt}`（`t` 是出餐類別 drink/food/none；舊單的 `guests` 已不使用）
 - `notes/*`：備忘 `{text, done, at, doneAt}`，每則一份文件，多支手機同時新增不會互蓋
+- `board/*`：備忘白板，每行一份 `{order, type:'text'|'check', text, done, at, by}`
+- `staff/main`：員工 `{list:[{id,name,pin,role:'admin'|'staff'}]}`；每支手機選「我是誰」存在 localStorage
+- `shifts/*`：打卡 `{staffId, name, day, in, out}`
+- `expenses/*`：支出 `{day, amount, kind:'wage'|'buy'|'other', src:'cash'|'other', note, staffId, at, by}`
 - 營業日以早上 6 點換日。
