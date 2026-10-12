@@ -791,7 +791,7 @@ function openE(id,day){
 function renderE(){
   var E=S.esheet;if(!E)return;
   $('#ef-kind').innerHTML=EXP_KINDS.map(function(k){return '<button class="'+(E.kind===k[0]?'on':'')+'" data-act="efKind" data-v="'+k[0]+'">'+k[1]+'</button>';}).join('');
-  $('#ef-src').innerHTML='<button class="'+(E.src==='cash'?'on':'')+'" data-act="efSrc" data-v="cash">櫃台現金</button><button class="'+(E.src!=='cash'?'on':'')+'" data-act="efSrc" data-v="other">其他</button>';
+  $('#ef-src').innerHTML='<button class="'+(E.src==='cash'?'on':'')+'" data-act="efSrc" data-v="cash">現金</button><button class="'+(E.src!=='cash'?'on':'')+'" data-act="efSrc" data-v="other">其他</button>';
   $('#ef-staff').innerHTML=(E.kind==='wage'&&S.staff.length)?'<div class="lab">給誰</div><div class="chips wrapx">'+S.staff.map(function(x){return '<button class="chip'+(E.staffId===x.id?' on':'')+'" data-act="efStaff" data-id="'+esc(x.id)+'">'+esc(x.name)+'</button>';}).join('')+'</div>':'';
   $('#ef-del').textContent=S.confirm==='edel'?'再按一次刪除':'刪除';
 }
@@ -1208,7 +1208,7 @@ function salesView(){
   }).join('')+'</div>':'<p class="muted">這天還沒有收款。</p>');
   var KN={wage:'薪水',buy:'採購',other:'其他'};
   var exp='<div class="sec"><h2>支出</h2><button class="btn small primary" data-act="eNew">＋ 支出</button></div>'+(exps.length?'<div class="card" style="padding:0">'+exps.map(function(e){
-    return '<button class="exprow" data-act="eEdit" data-id="'+esc(e.id)+'"><span class="w"><b>'+esc(KN[e.kind]||'其他')+'</b> '+esc(e.note||'')+'<small>'+(e.at?fmtTime(e.at):'')+(e.by?' · '+esc(e.by):'')+(e.src==='cash'?' · 櫃台現金':'')+'</small></span><b class="num">'+money(e.amount)+'</b></button>';
+    return '<button class="exprow" data-act="eEdit" data-id="'+esc(e.id)+'"><span class="w"><b>'+esc(KN[e.kind]||'其他')+'</b> '+esc(e.note||'')+'<small>'+(e.at?fmtTime(e.at):'')+(e.by?' · '+esc(e.by):'')+(e.src==='cash'?' · 現金':'')+'</small></span><b class="num">'+money(e.amount)+'</b></button>';
   }).join('')+'</div>':'<p class="muted">這天還沒有支出。</p>');
   var shifts=(rec.shifts||[]).slice().sort(function(a,b){return a.in-b.in;});
   var who=S.staff.length?'<div class="sec"><h2>誰上班</h2></div><div class="card">'+(shifts.length?shifts.map(function(x){
@@ -1793,8 +1793,9 @@ function renderX(){
     (p.tendered!=null&&!p.tip&&p.tendered>p.amount?'<div class="muted" style="text-align:right">收 '+money(p.tendered)+'，找 '+money(p.tendered-p.amount)+'</div>':'')+
     '<div class="lab">付款方式</div><div class="mgrid">'+METHODS.map(function(m){return '<button class="'+(p.method===m?'on':'')+'" data-act="xMethod" data-v="'+esc(m)+'">'+esc(m)+'</button>';}).join('')+'</div>'+
     '<button class="btn big" data-act="xOrder">打開這張單</button>'+
-    '<button class="btn danger big" data-act="xUndo" style="margin-top:8px">'+(S.confirm==='xUndo'?'再按一次撤銷':'撤銷這筆收款')+'</button>'+
-    '<p class="muted" style="margin:8px 0 0">撤銷後這張單回到未結帳，可以改品項再重新結。</p>';
+    '<button class="btn big" data-act="xUndo" style="margin-top:8px">'+(S.confirm==='xUndo'?'再按一次撤銷':'撤銷這筆收款')+'</button>'+
+    '<button class="btn danger big" data-act="xDel" style="margin-top:8px">'+(S.confirm==='xDel'?'再按一次刪除':'刪除這張單')+'</button>'+
+    '<p class="muted" style="margin:8px 0 0">撤銷：回到未結帳，可以改了再結。刪除：整張單不見，營業額一起扣掉。</p>';
 }
 function xMethod(m){
   var X=S.xsheet;if(!X)return;
@@ -1895,6 +1896,7 @@ document.addEventListener('click',function(e){
     case 'closeX':closeX();break;
     case 'xMethod':xMethod(v);break;
     case 'xUndo':xUndo();break;
+    case 'xDel':{if(S.confirm!=='xDel'){arm('xDel',4000);renderX();break;}S.confirm=null;var xid=S.xsheet.oid;closeX();removeOrder(xid);S.view='sales';render();break;}
     case 'xOrder':{var xo=S.xsheet&&S.xsheet.oid;closeX();if(xo)openEditor(xo);break;}
     case 'coPay':coPay();break;
     case 'coUndo':coUndo(Number(v));break;
