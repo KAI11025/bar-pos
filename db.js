@@ -40,6 +40,7 @@ const normName = (s) => String(s || '').trim().toLowerCase();
 async function emailFor(name) {
   const n = normName(name);
   if (n.includes('@')) return n;
+  if (n === '店長' || n === 'pos') return storeEmail;
   try {
     const s = await getDoc(doc(fs, 'public/logins'));
     const map = (s.exists() && s.data().map) || {};
