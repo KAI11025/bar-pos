@@ -127,6 +127,33 @@
    "type": "drink"
   },
   {
+   "id": "d33",
+   "name": "雙人馬車",
+   "en": "Side Car",
+   "cat": "Brandy",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d34",
+   "name": "亞歷山大",
+   "en": "Alexander",
+   "cat": "Brandy",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d35",
+   "name": "床戲",
+   "en": "Between The Sheets",
+   "cat": "Brandy",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
    "id": "d08",
    "name": "慾望城市",
    "en": "Cosmopolitan",
@@ -262,33 +289,6 @@
    "type": "drink"
   },
   {
-   "id": "d33",
-   "name": "雙人馬車",
-   "en": "Side Car",
-   "cat": "Brandy",
-   "price": 260,
-   "active": true,
-   "type": "drink"
-  },
-  {
-   "id": "d34",
-   "name": "亞歷山大",
-   "en": "Alexander",
-   "cat": "Brandy",
-   "price": 260,
-   "active": true,
-   "type": "drink"
-  },
-  {
-   "id": "d35",
-   "name": "床戲",
-   "en": "Between The Sheets",
-   "cat": "Brandy",
-   "price": 260,
-   "active": true,
-   "type": "drink"
-  },
-  {
    "id": "d36",
    "name": "曼哈頓",
    "en": "Manhattan",
@@ -389,7 +389,7 @@
   },
   {
    "id": "d17",
-   "name": "莓紅甘霖",
+   "name": "莓紅乾霖",
    "en": "Pussy Drink",
    "cat": "Special",
    "price": 300,
@@ -420,7 +420,8 @@
    "en": "Whiskey Sour",
    "cat": "Sour",
    "price": 280,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m002",
@@ -428,7 +429,8 @@
    "en": "Midori Sour",
    "cat": "Sour",
    "price": 280,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m003",
@@ -436,7 +438,8 @@
    "en": "Amaretto Sour",
    "cat": "Sour",
    "price": 280,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m004",
@@ -444,7 +447,8 @@
    "en": "Peach Sour",
    "cat": "Sour",
    "price": 280,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m005",
@@ -452,7 +456,8 @@
    "en": "Dita Sour",
    "cat": "Sour",
    "price": 280,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m006",
@@ -460,7 +465,8 @@
    "en": "Passion Sour",
    "cat": "Sour",
    "price": 280,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m007",
@@ -468,7 +474,8 @@
    "en": "Elder Flower Sour",
    "cat": "Sour",
    "price": 280,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m008",
@@ -476,55 +483,8 @@
    "en": "Other Flavor",
    "cat": "Sour",
    "price": 280,
-   "active": true
-  },
-  {
-   "id": "m009",
-   "name": "冰凍自殺飛機（杯）",
-   "en": "Frozen Kami-Kaze Glass",
-   "cat": "Frozen",
-   "price": 280,
-   "active": true
-  },
-  {
-   "id": "m010",
-   "name": "冰凍瑪格麗特（杯）",
-   "en": "Frozen Margarita Glass",
-   "cat": "Frozen",
-   "price": 280,
-   "active": true
-  },
-  {
-   "id": "m011",
-   "name": "冰凍戴克瑞（杯）",
-   "en": "Frozen Daiquiri Glass",
-   "cat": "Frozen",
-   "price": 280,
-   "active": true
-  },
-  {
-   "id": "m012",
-   "name": "冰凍自殺飛機（壺）",
-   "en": "Frozen Kami-Kaze Pitcher",
-   "cat": "Frozen",
-   "price": 700,
-   "active": true
-  },
-  {
-   "id": "m013",
-   "name": "冰凍瑪格麗特（壺）",
-   "en": "Frozen Margarita Pitcher",
-   "cat": "Frozen",
-   "price": 700,
-   "active": true
-  },
-  {
-   "id": "m014",
-   "name": "冰凍戴克瑞（壺）",
-   "en": "Frozen Daiquiri Pitcher",
-   "cat": "Frozen",
-   "price": 700,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m015",
@@ -532,7 +492,8 @@
    "en": "B-52",
    "cat": "Shot",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m016",
@@ -540,7 +501,8 @@
    "en": "Jager Shot",
    "cat": "Shot",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m017",
@@ -548,7 +510,8 @@
    "en": "Vodka Shot",
    "cat": "Shot",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m018",
@@ -556,7 +519,8 @@
    "en": "Tequila Shot",
    "cat": "Shot",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m019",
@@ -564,7 +528,8 @@
    "en": "Whiskey Shot",
    "cat": "Shot",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m020",
@@ -572,7 +537,8 @@
    "en": "B-52 ×6",
    "cat": "Shot",
    "price": 800,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m021",
@@ -580,7 +546,8 @@
    "en": "Jager Shot ×6",
    "cat": "Shot",
    "price": 800,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m022",
@@ -588,7 +555,8 @@
    "en": "Vodka Shot ×6",
    "cat": "Shot",
    "price": 800,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m023",
@@ -596,7 +564,8 @@
    "en": "Tequila Shot ×6",
    "cat": "Shot",
    "price": 800,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m024",
@@ -604,7 +573,8 @@
    "en": "Whiskey Shot ×6",
    "cat": "Shot",
    "price": 800,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m025",
@@ -612,7 +582,8 @@
    "en": "Irish Carbomb",
    "cat": "Shot",
    "price": 300,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m026",
@@ -620,7 +591,8 @@
    "en": "Special Shot",
    "cat": "Shot",
    "price": 600,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m027",
@@ -628,7 +600,8 @@
    "en": "Mango Pomelo Sago",
    "cat": "Shot",
    "price": 800,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "active": true,
@@ -636,448 +609,504 @@
    "en": "Paralyzer",
    "id": "d23",
    "name": "半身麻醉",
-   "price": 250
+   "price": 250,
+   "type": "drink"
+  },
+  {
+   "id": "m009",
+   "name": "冰凍自殺飛機（杯）",
+   "en": "Frozen Kami-Kaze Glass",
+   "cat": "Frozen",
+   "price": 280,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "m010",
+   "name": "冰凍瑪格麗特（杯）",
+   "en": "Frozen Margarita Glass",
+   "cat": "Frozen",
+   "price": 280,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "m011",
+   "name": "冰凍戴克瑞（杯）",
+   "en": "Frozen Daiquiri Glass",
+   "cat": "Frozen",
+   "price": 280,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "m012",
+   "name": "冰凍自殺飛機（壺）",
+   "en": "Frozen Kami-Kaze Pitcher",
+   "cat": "Frozen",
+   "price": 700,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "m013",
+   "name": "冰凍瑪格麗特（壺）",
+   "en": "Frozen Margarita Pitcher",
+   "cat": "Frozen",
+   "price": 700,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "m014",
+   "name": "冰凍戴克瑞（壺）",
+   "en": "Frozen Daiquiri Pitcher",
+   "cat": "Frozen",
+   "price": 700,
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m028",
    "name": "台灣18天 500ml",
    "en": "Taiwan Beer 18 Day",
-   "cat": "生啤",
+   "cat": "Draft Beer",
    "price": 170,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m029",
    "name": "健力士黑啤",
    "en": "Guinness",
-   "cat": "生啤",
+   "cat": "Draft Beer",
    "price": 250,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m030",
    "name": "香緹",
    "en": "Shandy",
-   "cat": "生啤",
+   "cat": "Draft Beer",
    "price": 200,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m031",
    "name": "深水炸彈",
    "en": "Boilermaker",
-   "cat": "生啤",
+   "cat": "Draft Beer",
    "price": 250,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m032",
    "name": "台灣18天 2L",
    "en": "Taiwan Beer 18 Day 2L",
-   "cat": "生啤",
+   "cat": "Draft Beer",
    "price": 650,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m033",
    "name": "紅酒（杯）",
    "en": "Red Wine Glass",
-   "cat": "紅白酒",
+   "cat": "Wine",
    "price": 250,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m034",
    "name": "紅酒（瓶）",
    "en": "Red Wine Bottle",
-   "cat": "紅白酒",
+   "cat": "Wine",
    "price": 1200,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m035",
    "name": "白酒（杯）",
    "en": "White Wine Glass",
-   "cat": "紅白酒",
+   "cat": "Wine",
    "price": 250,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m036",
    "name": "白酒（瓶）",
    "en": "White Wine Bottle",
-   "cat": "紅白酒",
+   "cat": "Wine",
    "price": 1200,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m037",
    "name": "七喜",
    "en": "7-Up",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 100,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m038",
    "name": "可樂",
    "en": "Coke",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 100,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m039",
    "name": "通寧水",
    "en": "Tonic Water",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 100,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m040",
    "name": "薑汁汽水",
    "en": "Ginger Ale",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 100,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m041",
    "name": "柳橙汁",
    "en": "Orange Juice",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 120,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m042",
    "name": "鳳梨汁",
    "en": "Pineapple Juice",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 120,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m043",
    "name": "蔓越莓汁",
    "en": "Cranberry Juice",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 120,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m044",
    "name": "柳橙蘇打",
    "en": "Orange Soda",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 160,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m045",
    "name": "晴空蘇打",
    "en": "Blue Sky Soda",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 160,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m046",
    "name": "日落蘇打",
    "en": "Sunset Soda",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 160,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "id": "m047",
    "name": "紅牛",
    "en": "Redbull",
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "drink"
   },
   {
    "active": true,
-   "cat": "軟性飲料",
+   "cat": "Soft Drink",
    "en": "Honey Egg Juice",
    "id": "d42",
    "name": "蛋蜜汁",
-   "price": 180
+   "price": 180,
+   "type": "drink"
   },
   {
    "id": "f001",
    "name": "美式脆薯",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 180,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f002",
    "name": "岩漿起司薯條",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 250,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f003",
    "name": "法式松露薯條",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 250,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f004",
    "name": "猛男十塊G塊",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 160,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f005",
    "name": "香脆柳葉魚",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 180,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f006",
    "name": "檸香雞柳條",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 180,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f007",
    "name": "J牌香脆雞翅",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 180,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f008",
    "name": "喀滋排骨酥",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 180,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f009",
    "name": "洋蔥套圈圈",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 160,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f010",
    "name": "香脆鱈魚絲",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f011",
    "name": "鮮味魷魚條",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 200,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f012",
    "name": "小炸物拼盤（2-4人）",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 450,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f013",
    "name": "大炸物拼盤（4-6人）",
    "en": "",
-   "cat": "炸物",
+   "cat": "Fried Food",
    "price": 550,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f014",
    "name": "就是花生",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 100,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f015",
    "name": "香滷豆干",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 130,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f016",
    "name": "毛豆",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 130,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f017",
    "name": "鴨賞",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 200,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f018",
    "name": "豬耳朵",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 200,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f019",
    "name": "辣椒小魚乾",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 160,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f020",
    "name": "老闆的醃黃瓜",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 150,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f021",
    "name": "莎莎辣脆片",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 180,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f022",
    "name": "安妞泡菜",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 100,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f023",
    "name": "胡椒蝦",
    "en": "",
-   "cat": "下酒菜",
+   "cat": "Nibbles",
    "price": 380,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f024",
    "name": "招牌手工水餃",
    "en": "",
-   "cat": "主食",
+   "cat": "Staple Food",
    "price": 200,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f025",
    "name": "J角老闆麵",
    "en": "",
-   "cat": "主食",
+   "cat": "Staple Food",
    "price": 180,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f026",
    "name": "月亮蝦餅",
    "en": "",
-   "cat": "主食",
+   "cat": "Staple Food",
    "price": 160,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f027",
    "name": "蛤蠣湯 / 酒蒸蛤蠣",
    "en": "",
-   "cat": "主食",
+   "cat": "Staple Food",
    "price": 200,
-   "active": true
+   "active": true,
+   "type": "food"
   },
   {
    "id": "f028",
    "name": "生蠔（顆）",
    "en": "",
-   "cat": "主食",
+   "cat": "Staple Food",
    "price": 150,
-   "active": true
-  },
-  {
-   "active": false,
-   "cat": "已下架",
-   "en": "Chi-Chi",
-   "id": "d19",
-   "name": "奇奇",
-   "price": null
-  },
-  {
-   "active": false,
-   "cat": "已下架",
-   "en": "El Diablo",
-   "id": "d22",
-   "name": "惡魔",
-   "price": null
-  },
-  {
-   "active": false,
-   "cat": "已下架",
-   "en": "Pina Colada",
-   "id": "d25",
-   "name": "椰島戀情",
-   "price": null
-  },
-  {
-   "active": false,
-   "cat": "已下架",
-   "en": "Mango Pomelo",
-   "id": "d32",
-   "name": "楊枝甘露",
-   "price": null
-  },
-  {
-   "active": false,
-   "cat": "已下架",
-   "en": "Captain",
-   "id": "d44",
-   "name": "美國隊長",
-   "price": null
-  },
-  {
-   "active": false,
-   "cat": "已下架",
-   "en": "Kir",
-   "id": "d45",
-   "name": "基爾",
-   "price": null
+   "active": true,
+   "type": "food"
   }
  ],
- "version": 2
+ "version": 3
 }
