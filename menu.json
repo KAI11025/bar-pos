@@ -1,6 +1,420 @@
 {
  "items": [
   {
+   "id": "d43",
+   "name": "環遊世界",
+   "en": "Around The World",
+   "cat": "Tropical",
+   "price": 500,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d28",
+   "name": "殭屍",
+   "en": "Zombie",
+   "cat": "Tropical",
+   "price": 400,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c01",
+   "name": "古巴特調",
+   "en": "Mojito",
+   "cat": "Tropical",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c02",
+   "name": "長島冰茶",
+   "en": "Long Island Ice Tea",
+   "cat": "Tropical",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c03",
+   "name": "J島冰茶",
+   "en": "J Island Ice Tea Plus+",
+   "cat": "Tropical",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d27",
+   "name": "邁泰",
+   "en": "Mai-tai",
+   "cat": "Tropical",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d41",
+   "name": "高潮",
+   "en": "Orgasm",
+   "cat": "Tropical",
+   "price": 280,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d26",
+   "name": "藍色夏威夷",
+   "en": "Blue Hawaii",
+   "cat": "Tropical",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d31",
+   "name": "夢幻天堂",
+   "en": "Paradise Dream",
+   "cat": "Tropical",
+   "price": 280,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d15",
+   "name": "情慾海灘",
+   "en": "Sex On The Beach",
+   "cat": "Tropical",
+   "price": 280,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c04",
+   "name": "棕色牛奶",
+   "en": "Kahlua Milk",
+   "cat": "Tropical",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d40",
+   "name": "綠色蚱蜢",
+   "en": "Grasshopper",
+   "cat": "Tropical",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c05",
+   "name": "野格炸彈",
+   "en": "Jager Bomb",
+   "cat": "Tropical",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c06",
+   "name": "紅磚",
+   "en": "Red",
+   "cat": "Tropical",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d08",
+   "name": "慾望城市",
+   "en": "Cosmopolitan",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d09",
+   "name": "黑色俄羅斯",
+   "en": "Black Russian",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d10",
+   "name": "白色俄羅斯",
+   "en": "White Russian",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d11",
+   "name": "自殺飛機",
+   "en": "Kami-kaze",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d12",
+   "name": "藍色星期一",
+   "en": "Blue Monday",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d13",
+   "name": "海風",
+   "en": "Sea Breeze",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d14",
+   "name": "鹹狗",
+   "en": "Salty Dog",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c07",
+   "name": "中國藍",
+   "en": "China Blue",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d16",
+   "name": "愛情的盡頭",
+   "en": "End Of Love",
+   "cat": "Vodka",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d01",
+   "name": "新加坡司令",
+   "en": "Singapore Sling",
+   "cat": "Gin",
+   "price": 280,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c08",
+   "name": "琴湯尼",
+   "en": "Gin Tonic",
+   "cat": "Gin",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d02",
+   "name": "琴費斯",
+   "en": "Gin Fizz",
+   "cat": "Gin",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d03",
+   "name": "馬丁尼",
+   "en": "Martini",
+   "cat": "Gin",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d04",
+   "name": "尼格羅尼",
+   "en": "Negroni",
+   "cat": "Gin",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d05",
+   "name": "粉紅佳人",
+   "en": "Pink Lady",
+   "cat": "Gin",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d33",
+   "name": "雙人馬車",
+   "en": "Side Car",
+   "cat": "Brandy",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d34",
+   "name": "亞歷山大",
+   "en": "Alexander",
+   "cat": "Brandy",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d35",
+   "name": "床戲",
+   "en": "Between The Sheets",
+   "cat": "Brandy",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d36",
+   "name": "曼哈頓",
+   "en": "Manhattan",
+   "cat": "Whiskey",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d37",
+   "name": "老式",
+   "en": "Old-fashioned",
+   "cat": "Whiskey",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d38",
+   "name": "生鏽釘子",
+   "en": "Rusty Nail",
+   "cat": "Whiskey",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d39",
+   "name": "教父",
+   "en": "God Father",
+   "cat": "Whiskey",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "c09",
+   "name": "國王谷",
+   "en": "King's Valley",
+   "cat": "Whiskey",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d20",
+   "name": "瑪格麗特",
+   "en": "Margarita",
+   "cat": "Tequila",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d21",
+   "name": "墨西哥日出",
+   "en": "Tequila Sunrise",
+   "cat": "Tequila",
+   "price": 260,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d29",
+   "name": "白日夢",
+   "en": "Day Dream",
+   "cat": "Special",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d24",
+   "name": "秋生",
+   "en": "Autumn Life",
+   "cat": "Special",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d30",
+   "name": "小路亂撞",
+   "en": "Heartbeat",
+   "cat": "Special",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d07",
+   "name": "顧人怨",
+   "en": "Bossy Guy",
+   "cat": "Special",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d17",
+   "name": "莓紅甘霖",
+   "en": "Pussy Drink",
+   "cat": "Special",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d18",
+   "name": "腮紅",
+   "en": "Blushed",
+   "cat": "Special",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
+   "id": "d06",
+   "name": "鐵達尼號",
+   "en": "Titanic",
+   "cat": "Special",
+   "price": 300,
+   "active": true,
+   "type": "drink"
+  },
+  {
    "id": "m001",
    "name": "威士忌 Sour",
    "en": "Whiskey Sour",
@@ -393,350 +807,6 @@
    "price": 180
   },
   {
-   "active": true,
-   "cat": "琴酒",
-   "en": "Singapore Sling",
-   "id": "d01",
-   "name": "新加坡司令",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "琴酒",
-   "en": "Gin Fizz",
-   "id": "d02",
-   "name": "琴費斯",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "琴酒",
-   "en": "Martini",
-   "id": "d03",
-   "name": "馬丁尼",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "琴酒",
-   "en": "Negroni",
-   "id": "d04",
-   "name": "尼格羅尼",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "琴酒",
-   "en": "Pink Lady",
-   "id": "d05",
-   "name": "粉紅佳人",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "琴酒",
-   "en": "Titanic",
-   "id": "d06",
-   "name": "鐵達尼號",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "琴酒",
-   "en": "Bossy Guy",
-   "id": "d07",
-   "name": "顧人怨",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Cosmopolitan",
-   "id": "d08",
-   "name": "慾望城市",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Black Russian",
-   "id": "d09",
-   "name": "黑色俄羅斯",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "White Russian",
-   "id": "d10",
-   "name": "白色俄羅斯",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Kami-Kaze",
-   "id": "d11",
-   "name": "自殺飛機",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Blue Monday",
-   "id": "d12",
-   "name": "憂鬱星期一",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Sea Breeze",
-   "id": "d13",
-   "name": "海風",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Salty Dog",
-   "id": "d14",
-   "name": "鹹狗",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Sex On The Beach",
-   "id": "d15",
-   "name": "情慾海灘",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "End Of Love",
-   "id": "d16",
-   "name": "愛情的盡頭",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Pussy Drink",
-   "id": "d17",
-   "name": "莓紅甘霖",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Blushed",
-   "id": "d18",
-   "name": "腮紅",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "伏特加",
-   "en": "Chi-Chi",
-   "id": "d19",
-   "name": "奇奇",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "龍舌蘭",
-   "en": "Margarita",
-   "id": "d20",
-   "name": "瑪格麗特",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "龍舌蘭",
-   "en": "Tequila Sunrise",
-   "id": "d21",
-   "name": "龍舌蘭日出",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "龍舌蘭",
-   "en": "El Diablo",
-   "id": "d22",
-   "name": "惡魔",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "龍舌蘭",
-   "en": "Autumn Life",
-   "id": "d24",
-   "name": "秋生",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Pina Colada",
-   "id": "d25",
-   "name": "椰島戀情",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Blue Hawaii",
-   "id": "d26",
-   "name": "藍色夏威夷",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Mai Tai",
-   "id": "d27",
-   "name": "邁太",
-   "price": 200
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Zombie",
-   "id": "d28",
-   "name": "殭屍",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Day Dream",
-   "id": "d29",
-   "name": "白日夢",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Heartbeat",
-   "id": "d30",
-   "name": "小路亂撞",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Paradise Dream",
-   "id": "d31",
-   "name": "夢幻天堂",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "蘭姆與熱帶",
-   "en": "Mango Pomelo",
-   "id": "d32",
-   "name": "楊枝甘露",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "白蘭地",
-   "en": "Side Car",
-   "id": "d33",
-   "name": "雙人馬車",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "白蘭地",
-   "en": "Brandy Alexander",
-   "id": "d34",
-   "name": "亞歷山大",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "白蘭地",
-   "en": "Between The Sheets",
-   "id": "d35",
-   "name": "床戲",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "威士忌",
-   "en": "Manhattan",
-   "id": "d36",
-   "name": "曼哈頓",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "威士忌",
-   "en": "Old-Fashioned",
-   "id": "d37",
-   "name": "老式",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "威士忌",
-   "en": "Rusty Nail",
-   "id": "d38",
-   "name": "生鏽釘子",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "威士忌",
-   "en": "God Father",
-   "id": "d39",
-   "name": "教父",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "奶酒與其他",
-   "en": "Grasshopper",
-   "id": "d40",
-   "name": "綠色蚱蜢",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "奶酒與其他",
-   "en": "Orgasm",
-   "id": "d41",
-   "name": "高潮",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "奶酒與其他",
-   "en": "Around The World",
-   "id": "d43",
-   "name": "環遊世界",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "奶酒與其他",
-   "en": "Captain",
-   "id": "d44",
-   "name": "美國隊長",
-   "price": null
-  },
-  {
-   "active": true,
-   "cat": "奶酒與其他",
-   "en": "Kir",
-   "id": "d45",
-   "name": "基爾",
-   "price": null
-  },
-  {
    "id": "f001",
    "name": "美式脆薯",
    "en": "",
@@ -959,6 +1029,55 @@
    "cat": "主食",
    "price": 150,
    "active": true
+  },
+  {
+   "active": false,
+   "cat": "已下架",
+   "en": "Chi-Chi",
+   "id": "d19",
+   "name": "奇奇",
+   "price": null
+  },
+  {
+   "active": false,
+   "cat": "已下架",
+   "en": "El Diablo",
+   "id": "d22",
+   "name": "惡魔",
+   "price": null
+  },
+  {
+   "active": false,
+   "cat": "已下架",
+   "en": "Pina Colada",
+   "id": "d25",
+   "name": "椰島戀情",
+   "price": null
+  },
+  {
+   "active": false,
+   "cat": "已下架",
+   "en": "Mango Pomelo",
+   "id": "d32",
+   "name": "楊枝甘露",
+   "price": null
+  },
+  {
+   "active": false,
+   "cat": "已下架",
+   "en": "Captain",
+   "id": "d44",
+   "name": "美國隊長",
+   "price": null
+  },
+  {
+   "active": false,
+   "cat": "已下架",
+   "en": "Kir",
+   "id": "d45",
+   "name": "基爾",
+   "price": null
   }
- ]
+ ],
+ "version": 2
 }

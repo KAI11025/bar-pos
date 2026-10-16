@@ -676,10 +676,22 @@ function ensureDay(day){
     renderMain();
   },function(e){console.error(e);});
 }
+// 菜單改版：用 menu.json 蓋過舊的品項，自己在 app 裡新增的品項保留
+var MENU_VERSION=2,menuUpgrading=false;
+function upgradeMenu(d){
+  if(menuUpgrading)return;menuUpgrading=true;
+  fetch('menu.json?v='+MENU_VERSION,{cache:'no-store'}).then(function(r){return r.json();}).then(function(m){
+    if(!m||(m.version||1)<MENU_VERSION)return;
+    var ids={};m.items.forEach(function(x){ids[x.id]=1;});
+    var mine=(d.items||[]).filter(function(x){return !ids[x.id];});
+    return S.db.doc('menu/main').set({items:m.items.concat(mine),version:MENU_VERSION,updatedAt:Date.now()});
+  }).catch(function(e){console.error('menu upgrade',e);menuUpgrading=false;});
+}
 function startDb(db){
   S.db=db;S.state='ready';
   db.doc('menu/main').onSnapshot(function(s){
     var d=s.exists?s.data():null;
+    if(d&&(d.version||1)<MENU_VERSION)upgradeMenu(d);
     S.menu={items:(d&&d.items)||[]};S.menuMap={};S.menu.items.forEach(function(m){S.menuMap[m.id]=m;});S.menuLoaded=true;
     if(S.editor)renderEditorPicker();
     renderMain();
@@ -1405,12 +1417,13 @@ function favItems(){
 function renderEditorPicker(){
   var E=S.editor;if(!E)return;
   var fav=favItems();
-  var cats=(fav.length?['常點']:[]).concat(['全部']).concat(menuCats());
+  var cats=(fav.length?['常點']:[]).concat(['全部']).concat(menuCats().filter(function(c){return menuItems().some(function(m){return m.cat===c&&m.active!==false;});}));
   if(E.cat==='常點'&&!fav.length)E.cat='全部';
   $('#ed-chips').innerHTML=cats.map(function(c){return '<button class="chip'+(E.cat===c?' on':'')+'" data-act="edCat" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('');
   var q=E.q.trim().toLowerCase();
   var counts={};E.draft.items.forEach(function(l){if(l.menuId)counts[l.menuId]=(counts[l.menuId]||0)+l.qty;});
   var items=menuItems().filter(function(m){
+    if(m.active===false)return false;
     if(!q&&E.cat==='常點')return fav.indexOf(m.id)>=0;
     if(!q&&E.cat!=='全部'&&m.cat!==E.cat)return false;
     return !q||(m.name+' '+(m.en||'')).toLowerCase().indexOf(q)>=0;
