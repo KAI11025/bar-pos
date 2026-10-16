@@ -679,7 +679,7 @@ function ensureDay(day){
 // 菜單改版：用 menu.json 蓋過舊的品項，自己在 app 裡新增的品項保留
 var MENU_VERSION=2,menuUpgrading=false;
 function upgradeMenu(d){
-  if(menuUpgrading)return;menuUpgrading=true;
+  if(menuUpgrading||typeof fetch!=='function')return;menuUpgrading=true;
   fetch('menu.json?v='+MENU_VERSION,{cache:'no-store'}).then(function(r){return r.json();}).then(function(m){
     if(!m||(m.version||1)<MENU_VERSION)return;
     var ids={};m.items.forEach(function(x){ids[x.id]=1;});
